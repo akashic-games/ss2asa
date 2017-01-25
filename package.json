@@ -1,0 +1,57 @@
+{
+  "name": "@akashic-extension/ss2asa",
+  "version": "2.5.1",
+  "description": "Convert SpriteStudio files to akashic-animation files.",
+  "bin": {
+    "ss2asa": "bin/run"
+  },
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "scripts": {
+    "prepublish": "gulp clean && npm run install:typings && gulp compile",
+    "install:typings": "gulp install:typings",
+    "clean:typings": "gulp clean:typings",
+    "clean": "gulp clean",
+    "start": "npm run build && node bin/run",
+    "build": "gulp compile",
+    "lint": "gulp lint lint-md",
+    "test": "gulp test lint lint-md"
+  },
+  "author": "DWANGO Co., Ltd.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akashic-games/ss2asa.git"
+  },
+  "publishConfig": {
+    "@akashic-extension:registry": "http://registry.npmjs.org/"
+  },
+  "files": [
+    "bin",
+    "lib"
+  ],
+  "devDependencies": {
+    "del": "^2.2.2",
+    "gulp": "^3.9.1",
+    "gulp-istanbul": "^1.1.1",
+    "gulp-jasmine": "^2.3.0",
+    "gulp-shell": "^0.5.2",
+    "gulp-tslint": "^4.3.5",
+    "tslint": "~3.7.4",
+    "jasmine": "^2.5.3",
+    "jasmine-reporters": "^2.2.0",
+    "jasmine-terminal-reporter": "^1.0.3",
+    "mdast": "~2.0.0",
+    "mdast-lint": "~1.1.1",
+    "mock-fs": "^3.9.0",
+    "typescript": "1.7.5",
+    "typings": "^2.1.0"
+  },
+  "dependencies": {
+    "@akashic-extension/akashic-animation": "~2.6.1",
+    "@akashic/akashic-engine": "~1.10.1",
+    "commander": "^2.9.0",
+    "fs-extra": "^2.0.0",
+    "xml2js": "^0.4.15"
+  }
+}
