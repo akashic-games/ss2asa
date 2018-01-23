@@ -2,7 +2,7 @@
   "globalDependencies": {
     "commander": "registry:dt/commander#2.3.0+20160317120654",
     "fs-extra": "registry:dt/fs-extra#0.0.0+20160319124112",
-    "node": "github:DefinitelyTyped/DefinitelyTyped/node/node.d.ts#58aa81d0f90b118c7dc9e6ab685e4c7aa75f1c72"
+    "node": "registry:dt/node#7.0.0+20170322231424"
   },
   "dependencies": {
     "xml2js": "registry:dt/xml2js#0.0.0+20161130184909"
