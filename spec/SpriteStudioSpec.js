@@ -133,7 +133,7 @@ describe("SpriteStudio.", function () {
 
 		beforeEach(function (done) {
 			loadProject(
-				"spec/project/Instance/instance.sspj",
+				"spec/project/instance/instance.sspj",
 				function(result) {
 					proj = result.proj;
 					contents = result.contents;
@@ -624,6 +624,41 @@ describe("SpriteStudio.", function () {
 					}
 				});
 			}).not.toThrow();
+		});
+	});
+
+	describe("loadFromSSAE(SampleV6.sspj)", function() {
+		var proj;
+		var contents;
+
+		beforeEach(function (done) {
+			loadProject(
+				"spec/project/SampleV6/SampleV6.sspj",
+				function(result) {
+					proj = result.proj;
+					contents = result.contents;
+					done();
+				},
+				function(err) {
+					done.fail("failed to load project");
+				}
+			);
+		});
+
+		it("can load project and others", function() {
+			expect(proj).toBeDefined();
+			expect(contents).toBeDefined();
+		});
+
+		it("should not output Setup aasan file", function() {
+			contents.forEach(function(content) {
+				if ("SpriteStudioAnimePack" in content) {
+					SS.loadFromSSAE(proj, content, {outputUserData: true, labelAsUserData: true});
+
+					expect(findAnimation(proj, "anime_1")).toBeDefined();
+					expect(findAnimation(proj, "Setup")).toBeUndefined();
+				}
+			});
 		});
 	});
 });
