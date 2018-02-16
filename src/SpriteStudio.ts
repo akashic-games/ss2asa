@@ -604,7 +604,12 @@ function convertSSAnime(ssAnime: any, skinNames: string[], outputUserData: boole
 function loadAnimationsFromSSAnimeList(ssAnimeList: any[], skinNames: string[], outputUserData: boolean): Animation[] {
 	const animations: Animation[] = [];
 	for (let i = 0; i < ssAnimeList.length; i++) {
-		const anime = convertSSAnime(ssAnimeList[i], skinNames, outputUserData);
+		const ssAnime = ssAnimeList[i];
+		// akashic-animationでセットアップデータは利用しないので、セットアップデータは取得しないようにする
+		if (ssAnime.isSetup && ssAnime.isSetup[0] === "1") {
+			continue;
+		}
+		const anime = convertSSAnime(ssAnime, skinNames, outputUserData);
 		animations.push(anime);
 	}
 
