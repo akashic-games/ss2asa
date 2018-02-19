@@ -438,6 +438,22 @@
 								<value>0</value>
 							</key>
 						</attribute>
+						<attribute tag="LSCX">
+							<key time="0" ipType="linear">
+								<value>1.40000009536743</value>
+							</key>
+							<key time="10" ipType="linear">
+								<value>0.699999928474426</value>
+							</key>
+						</attribute>
+						<attribute tag="LSCY">
+							<key time="0" ipType="linear">
+								<value>1.40000009536743</value>
+							</key>
+							<key time="10" ipType="linear">
+								<value>0.799999952316284</value>
+							</key>
+						</attribute>
 						<attribute tag="PRIO">
 							<key time="0" ipType="linear">
 								<value>0</value>
