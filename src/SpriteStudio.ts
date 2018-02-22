@@ -28,6 +28,7 @@ const ssAttr2asaAttr: any = {
 	LSCX: "lsx",
 	LSCY: "lsy",
 	ALPH: "alpha",
+	LALP: "lalpha",
 	CELL: "cv",
 	PVTX: "pvtx",
 	PVTY: "pvty",

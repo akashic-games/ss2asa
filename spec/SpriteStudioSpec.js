@@ -676,5 +676,21 @@ describe("SpriteStudio.", function () {
 				}
 			});
 		});
+
+		it("can get LALP", function() {
+			contents.forEach(function(content) {
+				if ("SpriteStudioAnimePack" in content) {
+					SS.loadFromSSAE(proj, content, {outputUserData: true, labelAsUserData: true});
+
+					const anime = findAnimation(proj, "anime_1");
+					expect(anime.curveTies.left_arm.curves.some(function(curve) {
+						return curve.attribute === 'lalpha';
+					})).toBeTruthy();
+					expect(anime.curveTies.right_arm.curves.some(function(curve) {
+						return curve.attribute === 'lalpha';
+					})).toBeTruthy();
+				}
+			});
+		});
 	});
 });
