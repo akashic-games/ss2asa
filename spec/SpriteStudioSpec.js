@@ -660,5 +660,21 @@ describe("SpriteStudio.", function () {
 				}
 			});
 		});
+
+		it("can get LSCX and LSCY", function() {
+			contents.forEach(function(content) {
+				if ("SpriteStudioAnimePack" in content) {
+					SS.loadFromSSAE(proj, content, {outputUserData: true, labelAsUserData: true});
+
+					const anime = findAnimation(proj, "anime_1");
+					expect(anime.curveTies.stick_body.curves.some(function(curve) {
+						return curve.attribute === 'lsx';
+					})).toBeTruthy();
+					expect(anime.curveTies.stick_body.curves.some(function(curve) {
+						return curve.attribute === 'lsy';
+					})).toBeTruthy();
+				}
+			});
+		});
 	});
 });

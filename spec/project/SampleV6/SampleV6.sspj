@@ -156,7 +156,7 @@
 	<lastAnimeFile>stickman.ssae</lastAnimeFile>
 	<lastAnimeName>anime_1</lastAnimeName>
 	<lastCellMapFile>stickman.ssce</lastCellMapFile>
-	<lastCell>stick_arm_leg</lastCell>
-	<lastPart>root</lastPart>
+	<lastCell>stick_body</lastCell>
+	<lastPart>stick_body</lastPart>
 	<setupmode>0</setupmode>
 </SpriteStudioProject>
