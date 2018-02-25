@@ -49,6 +49,7 @@ const asaAttr4nullParts: string[] = [
 	"rz",
 	"sx",
 	"sy",
+	"alpha",
 	"ccr",
 	"userData"
 ];
