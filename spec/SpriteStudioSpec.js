@@ -668,10 +668,10 @@ describe("SpriteStudio.", function () {
 
 					const anime = findAnimation(proj, "anime_1");
 					expect(anime.curveTies.stick_body.curves.some(function(curve) {
-						return curve.attribute === 'lsx';
+						return curve.attribute === "lsx";
 					})).toBeTruthy();
 					expect(anime.curveTies.stick_body.curves.some(function(curve) {
-						return curve.attribute === 'lsy';
+						return curve.attribute === "lsy";
 					})).toBeTruthy();
 				}
 			});
@@ -684,11 +684,38 @@ describe("SpriteStudio.", function () {
 
 					const anime = findAnimation(proj, "anime_1");
 					expect(anime.curveTies.left_arm.curves.some(function(curve) {
-						return curve.attribute === 'lalpha';
+						return curve.attribute === "lalpha";
 					})).toBeTruthy();
 					expect(anime.curveTies.right_arm.curves.some(function(curve) {
-						return curve.attribute === 'lalpha';
+						return curve.attribute === "lalpha";
 					})).toBeTruthy();
+				}
+			});
+		});
+
+		it("can get IFLH and IFLV", function() {
+			contents.forEach(function(content) {
+				if ("SpriteStudioAnimePack" in content) {
+					SS.loadFromSSAE(proj, content, {outputUserData: true, labelAsUserData: true});
+					const anime = findAnimation(proj, "anime_1");
+
+					// 左右反転フラグが取得できていることと値がbooleanになっていることを確認
+					const iflhCurves = anime.curveTies.stick_head.curves.filter(function(curve) {
+						return curve.attribute === "iflh";
+					});
+					expect(iflhCurves.length).toBe(1);
+					iflhCurves[0].keyFrames.forEach(function(frame) {
+						expect(typeof frame.value).toBe("boolean");
+					});
+
+					// 上下反転フラグが取得できていることと値がbooleanになっていることを確認
+					const iflvCurves = anime.curveTies.dagger.curves.filter(function(curve) {
+						return curve.attribute === "iflv";
+					});
+					expect(iflvCurves.length).toBe(1);
+					iflvCurves[0].keyFrames.forEach(function(frame) {
+						expect(typeof frame.value).toBe("boolean");
+					});
 				}
 			});
 		});

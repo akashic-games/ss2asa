@@ -405,6 +405,14 @@
 								<value>1</value>
 							</key>
 						</attribute>
+						<attribute tag="IFLH">
+							<key time="0">
+								<value>0</value>
+							</key>
+							<key time="10">
+								<value>1</value>
+							</key>
+						</attribute>
 						<attribute tag="HIDE">
 							<key time="0">
 								<value>0</value>
@@ -751,6 +759,14 @@
 						</attribute>
 						<attribute tag="PRIO">
 							<key time="0" ipType="linear">
+								<value>1</value>
+							</key>
+						</attribute>
+						<attribute tag="IFLV">
+							<key time="0">
+								<value>0</value>
+							</key>
+							<key time="10">
 								<value>1</value>
 							</key>
 						</attribute>

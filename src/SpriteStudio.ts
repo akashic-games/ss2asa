@@ -35,6 +35,8 @@ const ssAttr2asaAttr: any = {
 	UVTX: "tu",
 	UVTY: "tv",
 	PRIO: "prio",
+	IFLH: "iflh",
+	IFLV: "iflv",
 	HIDE: "visibility",
 	BNDR: "ccr",
 	FLPH: "flipH",
@@ -540,6 +542,8 @@ function loadKeyFrames(attrType: string, keys: any[], skinNames: string[], outpu
 			return !parseBoolean(val); // trueの時表示としたいので逆転
 		});
 		break;
+	case "IFLH":
+	case "IFLV":
 	case "FLPH":
 	case "FLPV":
 		curve = loadKeyFramesAs<boolean>(attrType, keys, parseBoolean);
