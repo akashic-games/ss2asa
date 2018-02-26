@@ -692,6 +692,22 @@ describe("SpriteStudio.", function () {
 				}
 			});
 		});
+
+		it("can get IFLH and IFLV", function() {
+			contents.forEach(function(content) {
+				if ("SpriteStudioAnimePack" in content) {
+					SS.loadFromSSAE(proj, content, {outputUserData: true, labelAsUserData: true});
+
+					const anime = findAnimation(proj, "anime_1");
+					expect(anime.curveTies.stick_head.curves.some(function(curve) {
+						return curve.attribute === 'iflh';
+					})).toBeTruthy();
+					expect(anime.curveTies.dagger.curves.some(function(curve) {
+						return curve.attribute === 'iflv';
+					})).toBeTruthy();
+				}
+			});
+		});
 	});
 
 	describe("loadFromSSAE(NullAnimation.sspj)", function() {

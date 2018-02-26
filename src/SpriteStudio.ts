@@ -35,6 +35,8 @@ const ssAttr2asaAttr: any = {
 	UVTX: "tu",
 	UVTY: "tv",
 	PRIO: "prio",
+	IFLH: "iflh",
+	IFLV: "iflv",
 	HIDE: "visibility",
 	BNDR: "ccr",
 	FLPH: "flipH",
