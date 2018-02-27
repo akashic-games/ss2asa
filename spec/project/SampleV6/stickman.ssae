@@ -405,6 +405,14 @@
 								<value>1</value>
 							</key>
 						</attribute>
+						<attribute tag="IFLH">
+							<key time="0">
+								<value>0</value>
+							</key>
+							<key time="10">
+								<value>1</value>
+							</key>
+						</attribute>
 						<attribute tag="HIDE">
 							<key time="0">
 								<value>0</value>
@@ -659,6 +667,14 @@
 								<value>-42.2310676574707</value>
 							</key>
 						</attribute>
+						<attribute tag="LALP">
+							<key time="0" ipType="linear">
+								<value>0.200000002980232</value>
+							</key>
+							<key time="10" ipType="linear">
+								<value>1</value>
+							</key>
+						</attribute>
 						<attribute tag="PRIO">
 							<key time="0" ipType="linear">
 								<value>2</value>
@@ -684,12 +700,12 @@
 						</attribute>
 						<attribute tag="POSX">
 							<key time="0" ipType="linear">
-								<value>0.956691980361938</value>
+								<value>0.956691741943359</value>
 							</key>
 						</attribute>
 						<attribute tag="POSY">
 							<key time="0" ipType="linear">
-								<value>-51.9556694030762</value>
+								<value>-51.9556732177734</value>
 							</key>
 						</attribute>
 						<attribute tag="ROTZ">
@@ -746,6 +762,14 @@
 								<value>1</value>
 							</key>
 						</attribute>
+						<attribute tag="IFLV">
+							<key time="0">
+								<value>0</value>
+							</key>
+							<key time="10">
+								<value>1</value>
+							</key>
+						</attribute>
 						<attribute tag="HIDE">
 							<key time="0">
 								<value>0</value>
@@ -782,6 +806,14 @@
 								<value>-701.033996582031</value>
 							</key>
 						</attribute>
+						<attribute tag="LALP">
+							<key time="0" ipType="linear">
+								<value>0.400000005960464</value>
+							</key>
+							<key time="10" ipType="linear">
+								<value>1</value>
+							</key>
+						</attribute>
 						<attribute tag="PRIO">
 							<key time="0" ipType="linear">
 								<value>0</value>
@@ -807,7 +839,7 @@
 						</attribute>
 						<attribute tag="POSX">
 							<key time="0" ipType="linear">
-								<value>2.17600011825562</value>
+								<value>2.17600250244141</value>
 							</key>
 						</attribute>
 						<attribute tag="POSY">

@@ -28,12 +28,15 @@ const ssAttr2asaAttr: any = {
 	LSCX: "lsx",
 	LSCY: "lsy",
 	ALPH: "alpha",
+	LALP: "lalpha",
 	CELL: "cv",
 	PVTX: "pvtx",
 	PVTY: "pvty",
 	UVTX: "tu",
 	UVTY: "tv",
 	PRIO: "prio",
+	IFLH: "iflh",
+	IFLV: "iflv",
 	HIDE: "visibility",
 	BNDR: "ccr",
 	FLPH: "flipH",
@@ -48,6 +51,7 @@ const asaAttr4nullParts: string[] = [
 	"rz",
 	"sx",
 	"sy",
+	"alpha",
 	"ccr",
 	"userData"
 ];
