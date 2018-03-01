@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <SpriteStudioProject version="2.00.00">
-	<name>SampleV6</name>
+	<name>NullAnimation</name>
 	<exportPath></exportPath>
 	<settings>
 		<animeBaseDirectory></animeBaseDirectory>
@@ -151,9 +151,9 @@
 		<value>stickman.ssce</value>
 	</cellmapNames>
 	<animepackNames>
-		<value>stickman.ssae</value>
+		<value>NewAnimation.ssae</value>
 	</animepackNames>
-	<lastAnimeFile>stickman.ssae</lastAnimeFile>
+	<lastAnimeFile>NewAnimation.ssae</lastAnimeFile>
 	<lastAnimeName>anime_1</lastAnimeName>
 	<lastCellMapFile>stickman.ssce</lastCellMapFile>
 	<lastCell>dagger</lastCell>

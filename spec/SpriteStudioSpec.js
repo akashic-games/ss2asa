@@ -676,5 +676,129 @@ describe("SpriteStudio.", function () {
 				}
 			});
 		});
+
+		it("can get LALP", function() {
+			contents.forEach(function(content) {
+				if ("SpriteStudioAnimePack" in content) {
+					SS.loadFromSSAE(proj, content, {outputUserData: true, labelAsUserData: true});
+
+					const anime = findAnimation(proj, "anime_1");
+					expect(anime.curveTies.left_arm.curves.some(function(curve) {
+						return curve.attribute === 'lalpha';
+					})).toBeTruthy();
+					expect(anime.curveTies.right_arm.curves.some(function(curve) {
+						return curve.attribute === 'lalpha';
+					})).toBeTruthy();
+				}
+			});
+		});
+	});
+
+	describe("loadFromSSAE(NullAnimation.sspj)", function() {
+		var proj;
+		var contents;
+
+		beforeEach(function (done) {
+			loadProject(
+				"spec/project/NullAnimation/NullAnimation.sspj",
+				function(result) {
+					proj = result.proj;
+					contents = result.contents;
+					done();
+				},
+				function(err) {
+					done.fail("failed to load project");
+				}
+			);
+		});
+
+		it("can load project and others", function() {
+			expect(proj).toBeDefined();
+			expect(contents).toBeDefined();
+		});
+
+		it("can get POSX AND POSY", function() {
+			contents.forEach(function(content) {
+				if ("SpriteStudioAnimePack" in content) {
+					SS.loadFromSSAE(proj, content, {outputUserData: true, labelAsUserData: true});
+
+					const anime = findAnimation(proj, "anime_1");
+					expect(anime.curveTies.root.curves.some(function(curve) {
+						return curve.attribute === 'tx';
+					})).toBeTruthy();
+					expect(anime.curveTies.root.curves.some(function(curve) {
+						return curve.attribute === 'ty';
+					})).toBeTruthy();
+				}
+			});
+		});
+
+		it("can get ROTZ", function() {
+			contents.forEach(function(content) {
+				if ("SpriteStudioAnimePack" in content) {
+					SS.loadFromSSAE(proj, content, {outputUserData: true, labelAsUserData: true});
+
+					const anime = findAnimation(proj, "anime_1");
+					expect(anime.curveTies.root.curves.some(function(curve) {
+						return curve.attribute === 'rz';
+					})).toBeTruthy();
+				}
+			});
+		});
+
+		it("can get SCLX AND SCLY", function() {
+			contents.forEach(function(content) {
+				if ("SpriteStudioAnimePack" in content) {
+					SS.loadFromSSAE(proj, content, {outputUserData: true, labelAsUserData: true});
+
+					const anime = findAnimation(proj, "anime_1");
+					expect(anime.curveTies.root.curves.some(function(curve) {
+						return curve.attribute === 'sx';
+					})).toBeTruthy();
+					expect(anime.curveTies.root.curves.some(function(curve) {
+						return curve.attribute === 'sy';
+					})).toBeTruthy();
+				}
+			});
+		});
+
+		it("can get ALPH", function() {
+			contents.forEach(function(content) {
+				if ("SpriteStudioAnimePack" in content) {
+					SS.loadFromSSAE(proj, content, {outputUserData: true, labelAsUserData: true});
+
+					const anime = findAnimation(proj, "anime_1");
+					expect(anime.curveTies.root.curves.some(function(curve) {
+						return curve.attribute === 'alpha';
+					})).toBeTruthy();
+				}
+			});
+		});
+
+		it("can get BNDR", function() {
+			contents.forEach(function(content) {
+				if ("SpriteStudioAnimePack" in content) {
+					SS.loadFromSSAE(proj, content, {outputUserData: true, labelAsUserData: true});
+
+					const anime = findAnimation(proj, "anime_1");
+					expect(anime.curveTies.root.curves.some(function(curve) {
+						return curve.attribute === 'ccr';
+					})).toBeTruthy();
+				}
+			});
+		});
+
+		it("can get USER", function() {
+			contents.forEach(function(content) {
+				if ("SpriteStudioAnimePack" in content) {
+					SS.loadFromSSAE(proj, content, {outputUserData: true, labelAsUserData: true});
+
+					const anime = findAnimation(proj, "anime_1");
+					expect(anime.curveTies.root.curves.some(function(curve) {
+						return curve.attribute === 'userData';
+					})).toBeTruthy();
+				}
+			});
+		});
 	});
 });
