@@ -6,6 +6,7 @@ import Curve = AnimeParams.Curve;
 import KeyFrame = AnimeParams.KeyFrame;
 import IpCurve = AnimeParams.IpCurve;
 import CellValue = AnimeParams.CellValue;
+import AlphaBlendMode = require("@akashic-extension/akashic-animation/lib/AlphaBlendMode");
 
 // SpriteStudio 5のユーザデータ定義
 // ラベルをユーザデータに埋め込む機能のために`label`プロパティが拡張されている
@@ -321,6 +322,7 @@ function loadBonesFromSSModels(models: any[]): Bone[] {
 				bone.parent = undefined;
 				bone.children = undefined;
 				bone.colliderInfos = [];
+				bone.alphaBlendMode = exchangeAlphaBlendMode(v.alphaBlendType[0]);
 
 				const info = createColliderInfo(v.boundsType[0]);
 				if (info) { // "アタリ判定なし" の時 undefined が返る
@@ -341,6 +343,17 @@ function loadBonesFromSSModels(models: any[]): Bone[] {
 	propagateShowFlag(bones);
 
 	return bones;
+}
+
+function exchangeAlphaBlendMode(alphaBlendType: string): AlphaBlendMode {
+	switch (alphaBlendType) {
+		case "mix":
+			return "normal";
+		case "add":
+			return "add";
+		default:
+			return undefined;
+	}
 }
 
 function loadKeyFramesAs<T>(attrType: string, keys: any[], parser: (val: any) => T): Curve<T> {

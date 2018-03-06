@@ -828,4 +828,39 @@ describe("SpriteStudio.", function () {
 			});
 		});
 	});
+
+	describe("loadFromSSAE(SupportAlphaBlend.sspj)", function() {
+		var proj;
+		var contents;
+
+		beforeEach(function (done) {
+			loadProject(
+				"spec/project/SupportAlphaBlend/SupportAlphaBlend.sspj",
+				function(result) {
+					proj = result.proj;
+					contents = result.contents;
+					done();
+				},
+				function(err) {
+					done.fail("failed to load project");
+				}
+			);
+		});
+
+		it("can load project and others", function() {
+			expect(proj).toBeDefined();
+			expect(contents).toBeDefined();
+		});
+
+		it("can get alpha-blend-type from bone", function() {
+			contents.forEach(function(content) {
+				if ("SpriteStudioAnimePack" in content) {
+					SS.loadFromSSAE(proj, content, {outputUserData: true, labelAsUserData: true});
+					const bones = proj.boneSets[0].bones;
+					expect(bones[1].alphaBlendMode).toBe("normal");
+					expect(bones[2].alphaBlendMode).toBe("add")
+				}
+			});
+		});
+	});
 });
