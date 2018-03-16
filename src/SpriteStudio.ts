@@ -1,12 +1,11 @@
 import path = require("path");
-import {Skin, Cell, Bone, BoneSet, AnimeParams, ColliderInfo} from "@akashic-extension/akashic-animation";
+import {Skin, Cell, Bone, BoneSet, AnimeParams, ColliderInfo, AlphaBlendMode} from "@akashic-extension/akashic-animation";
 import Animation = AnimeParams.Animation;
 import CurveTie = AnimeParams.CurveTie;
 import Curve = AnimeParams.Curve;
 import KeyFrame = AnimeParams.KeyFrame;
 import IpCurve = AnimeParams.IpCurve;
 import CellValue = AnimeParams.CellValue;
-import AlphaBlendMode = require("@akashic-extension/akashic-animation/lib/AlphaBlendMode");
 
 // SpriteStudio 5のユーザデータ定義
 // ラベルをユーザデータに埋め込む機能のために`label`プロパティが拡張されている
