@@ -1,5 +1,5 @@
 import path = require("path");
-import {Skin, Cell, Bone, BoneSet, AnimeParams, ColliderInfo} from "@akashic-extension/akashic-animation";
+import {Skin, Cell, Bone, BoneSet, AnimeParams, ColliderInfo, AlphaBlendMode} from "@akashic-extension/akashic-animation";
 import Animation = AnimeParams.Animation;
 import CurveTie = AnimeParams.CurveTie;
 import Curve = AnimeParams.Curve;
@@ -321,6 +321,7 @@ function loadBonesFromSSModels(models: any[]): Bone[] {
 				bone.parent = undefined;
 				bone.children = undefined;
 				bone.colliderInfos = [];
+				bone.alphaBlendMode = exchangeAlphaBlendMode(v.alphaBlendType[0]);
 
 				const info = createColliderInfo(v.boundsType[0]);
 				if (info) { // "アタリ判定なし" の時 undefined が返る
@@ -341,6 +342,17 @@ function loadBonesFromSSModels(models: any[]): Bone[] {
 	propagateShowFlag(bones);
 
 	return bones;
+}
+
+function exchangeAlphaBlendMode(alphaBlendType: string): AlphaBlendMode {
+	switch (alphaBlendType) {
+		case "mix":
+			return "normal";
+		case "add":
+			return "add";
+		default:
+			return undefined;
+	}
 }
 
 function loadKeyFramesAs<T>(attrType: string, keys: any[], parser: (val: any) => T): Curve<T> {
