@@ -10,7 +10,7 @@
   "files": [
     "./node_modules/typescript/lib/lib.es6.d.ts",
     "./node_modules/@akashic/akashic-engine/lib/main.d.ts",
-    "./node_modules/@akashic-extension/akashic-animation/lib/@akashic-extension/akashic-animation.d.ts",
+    "./node_modules/@akashic-extension/akashic-animation/lib/index.d.ts",
     "./typings/index.d.ts",
     "./src/index.ts"
   ]

@@ -1,5 +1,5 @@
 import path = require("path");
-import {Skin, Cell, Bone, BoneSet, AnimeParams, ColliderInfo} from "@akashic-extension/akashic-animation";
+import {Skin, Cell, Bone, BoneSet, AnimeParams, ColliderInfo, AlphaBlendMode} from "@akashic-extension/akashic-animation";
 import Animation = AnimeParams.Animation;
 import CurveTie = AnimeParams.CurveTie;
 import Curve = AnimeParams.Curve;
@@ -25,13 +25,18 @@ const ssAttr2asaAttr: any = {
 	ROTZ: "rz",
 	SCLX: "sx",
 	SCLY: "sy",
+	LSCX: "lsx",
+	LSCY: "lsy",
 	ALPH: "alpha",
+	LALP: "lalpha",
 	CELL: "cv",
 	PVTX: "pvtx",
 	PVTY: "pvty",
 	UVTX: "tu",
 	UVTY: "tv",
 	PRIO: "prio",
+	IFLH: "iflh",
+	IFLV: "iflv",
 	HIDE: "visibility",
 	BNDR: "ccr",
 	FLPH: "flipH",
@@ -46,6 +51,7 @@ const asaAttr4nullParts: string[] = [
 	"rz",
 	"sx",
 	"sy",
+	"alpha",
 	"ccr",
 	"userData"
 ];
@@ -315,6 +321,7 @@ function loadBonesFromSSModels(models: any[]): Bone[] {
 				bone.parent = undefined;
 				bone.children = undefined;
 				bone.colliderInfos = [];
+				bone.alphaBlendMode = exchangeAlphaBlendMode(v.alphaBlendType[0]);
 
 				const info = createColliderInfo(v.boundsType[0]);
 				if (info) { // "アタリ判定なし" の時 undefined が返る
@@ -335,6 +342,17 @@ function loadBonesFromSSModels(models: any[]): Bone[] {
 	propagateShowFlag(bones);
 
 	return bones;
+}
+
+function exchangeAlphaBlendMode(alphaBlendType: string): AlphaBlendMode {
+	switch (alphaBlendType) {
+		case "mix":
+			return "normal";
+		case "add":
+			return "add";
+		default:
+			return undefined;
+	}
 }
 
 function loadKeyFramesAs<T>(attrType: string, keys: any[], parser: (val: any) => T): Curve<T> {
@@ -536,6 +554,8 @@ function loadKeyFrames(attrType: string, keys: any[], skinNames: string[], outpu
 			return !parseBoolean(val); // trueの時表示としたいので逆転
 		});
 		break;
+	case "IFLH":
+	case "IFLV":
 	case "FLPH":
 	case "FLPV":
 		curve = loadKeyFramesAs<boolean>(attrType, keys, parseBoolean);
@@ -604,7 +624,12 @@ function convertSSAnime(ssAnime: any, skinNames: string[], outputUserData: boole
 function loadAnimationsFromSSAnimeList(ssAnimeList: any[], skinNames: string[], outputUserData: boolean): Animation[] {
 	const animations: Animation[] = [];
 	for (let i = 0; i < ssAnimeList.length; i++) {
-		const anime = convertSSAnime(ssAnimeList[i], skinNames, outputUserData);
+		const ssAnime = ssAnimeList[i];
+		// akashic-animationでセットアップデータは利用しないので、セットアップデータは取得しないようにする
+		if (ssAnime.isSetup && ssAnime.isSetup[0] === "1") {
+			continue;
+		}
+		const anime = convertSSAnime(ssAnime, skinNames, outputUserData);
 		animations.push(anime);
 	}
 
