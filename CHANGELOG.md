@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased changes
+## 2.5.2
 * SpriteStudio6対応
   * セットアップデータのassanファイルを出力しないように変更
   * X/Yローカルスケールサポート
