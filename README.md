@@ -8,6 +8,8 @@ SpriteStudio形式のファイルををakashic-animation形式にコンバート
 $ npm install -g @akashic-extension/ss2asa
 ```
 
+Akashic Engineの詳細な利用方法については、 [公式ページ](https://akashic-games.github.io/) を参照してください。
+
 # 使い方
 SpriteStudioのプロジェクトファイルを渡してください。関連ファイル(ssae,ssce)を含めすべてコンバートします。
 
