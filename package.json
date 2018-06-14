@@ -24,7 +24,7 @@
     "url": "https://github.com/akashic-games/ss2asa.git"
   },
   "publishConfig": {
-    "@akashic-extension:registry": "http://registry.npmjs.org/"
+    "@akashic-extension:registry": "https://registry.npmjs.org/"
   },
   "files": [
     "bin",
