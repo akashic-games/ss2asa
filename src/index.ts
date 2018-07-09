@@ -7,7 +7,7 @@ import C = require("./converter");
 // Consts
 //
 const program_version = JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", "package.json"), "utf8")).version;
-const DEFAULT_PREFIXES = "pj_,bn_,sk_,an_";
+const DEFAULT_PREFIXES = "pj_,bn_,sk_,an_,ef_";
 
 //
 // Handle options and args

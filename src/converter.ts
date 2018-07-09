@@ -26,7 +26,8 @@ enum Prefix {
 	Proj,
 	Bone,
 	Skin,
-	Anim
+	Anim,
+	Effect
 }
 
 let vlog: U.Logger = undefined;
@@ -63,9 +64,10 @@ export function convert(options: Options): void {
 	.then(
 		(result: any) => { // promise to load ssae and ssce files
 			const fset = SS.createRelatedFileSetFromSSPJ(result);
-			const allFiles = fset.ssaeFileNames.concat(fset.ssceFileNames);
+			const allFiles = fset.ssaeFileNames.concat(fset.ssceFileNames, fset.sseeFileNames);
 			return Promise.all( // すべてのpromiseが終了するのを待機するpromise
 				allFiles.map((fname: string) => {
+					console.log("loading... " + fname);
 					return loadAsyncPromise(path.join(pathToProj, fname));
 				})
 			);
@@ -79,8 +81,12 @@ export function convert(options: Options): void {
 			results.map((result: any) => {
 				if ("SpriteStudioAnimePack" in result) { // SSAE
 					SS.loadFromSSAE(proj, result, options);
-				} else {
+				} else if ("SpriteStudioCellMap" in result) {
 					SS.loadFromSSCE(proj, result);
+				} else if ("SpriteStudioEffect" in result) {
+					SS.loadFromSSEE(proj, result);
+				} else {
+					console.log("unknow file type or broken file. skip");
 				}
 			});
 			writeAll(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo);
@@ -127,12 +133,14 @@ export class RelatedFileInfo {
 	boneSetFileNames: string[];
 	skinFileNames: string[];
 	animationFileNames: string[];
+	effectFileNames: string[];
 	imageFileNames: string[];
 
 	constructor(imageFileNames: string[], contents: any) {
 		this.boneSetFileNames = contents.boneSetFileNames;
 		this.skinFileNames = contents.skinFileNames;
 		this.animationFileNames = contents.animationFileNames;
+		this.effectFileNames = contents.effectFileNames;
 		this.imageFileNames = imageFileNames;
 	}
 }
@@ -142,10 +150,12 @@ function writeAll(proj: SS.Project, outDir: string, prefixes: string[], outputRe
 	const skinFileNames = writeNamedObjects<Skin>(proj.skins, ".asask", outDir, FILEFORMAT_VERSION, prefixes[Prefix.Skin]);
 	const animFileNames = writeNamedObjects<AnimeParams.Animation>(
 		proj.animations, ".asaan", outDir, FILEFORMAT_VERSION, prefixes[Prefix.Anim]);
+	const effectFileNames = writeNamedObjects<any>(proj.effects, ".asaef", outDir, FILEFORMAT_VERSION, prefixes[Prefix.Effect]);
 	const contents: any = {
 		boneSetFileNames: boneSetFileNames,
 		skinFileNames: skinFileNames,
 		animationFileNames: animFileNames,
+		effectFileNames: effectFileNames,
 		userData: proj.userData
 	};
 
