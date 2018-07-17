@@ -35,12 +35,7 @@ let vlog: U.Logger = undefined;
 export function convert(options: Options): void {
 	vlog = new U.Logger(options.verbose);
 
-	vlog.log("outDir:" + options.outDir);
-	vlog.log("addPrefix:" + options.addPrefix);
-	vlog.log("prefixes:" + options.prefixes);
-	vlog.log("longName:" + options.asaanLongName);
-	vlog.log("deleteHidden:" + options.deleteHidden);
-	vlog.log("userData:" + options.outputUserData);
+	vlog.log("option:" + JSON.stringify(options));
 
 	const pathToProj = path.dirname(options.projFileName);
 	const proj = new SS.Project();

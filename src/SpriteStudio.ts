@@ -194,6 +194,7 @@ export interface LoadFromSSAEOptionObject {
 	outputUserData?: boolean;
 	outputComboInfo?: boolean;
 	outputRelatedFileInfo?: boolean;
+	outputLayoutSize?: boolean;
 }
 
 export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptionObject): void {
@@ -276,6 +277,25 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 			proj.userData.combinationInfo = [];
 		}
 		proj.userData.combinationInfo.push(combo);
+	}
+
+	if (option.outputLayoutSize) {
+		const layoutSizes: {[key: string]: {width: number, height: number}} = {};
+
+		for (let i = 0; i < ssAnimeList.length; i++) {
+			const ssAnime = ssAnimeList[i];
+			if (ssAnime.isSetup && ssAnime.isSetup[0] === "1") {
+				continue;
+			}
+			const name = animationNamePrefix + ssAnime.name[0];
+			const canvasSizes = ssAnime.settings[0].canvasSize[0].split(" ");
+			const width = canvasSizes[0];
+			const height = canvasSizes[1];
+			layoutSizes[name] = {width: width, height: height};
+		}
+
+		proj.userData = (proj.userData || {});
+		proj.userData.layoutSizes = layoutSizes;
 	}
 }
 
