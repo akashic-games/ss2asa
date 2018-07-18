@@ -46,7 +46,8 @@ const ssAttr2asaAttr: any = {
 	BNDR: "ccr",
 	FLPH: "flipH",
 	FLPV: "flipV",
-	USER: "userData"
+	USER: "userData",
+	EFCT: "effect"
 };
 
 // パーツ種別 "null" の扱える属性は以下に限られる
@@ -722,6 +723,13 @@ function loadKeyFrames(attrType: string, keys: any[], skinNames: string[], outpu
 			result.rect  = val.rect    ? str2numbers(val.rect[0])  : undefined;
 			result.str   = val.string  ? val.string[0]             : undefined;
 			return result;
+		});
+		break;
+	case "EFCT":
+		curve = loadKeyFramesAs<vfx.EffectValue>(attrType, keys, (val: any): vfx.EffectValue => {
+			return {
+				emitterOp: val.independent[0] === "0" ? vfx.EmitterOperation.start : vfx.EmitterOperation.stop
+			};
 		});
 		break;
 	default:
