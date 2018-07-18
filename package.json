@@ -1,6 +1,6 @@
 {
   "name": "@akashic-extension/ss2asa",
-  "version": "2.6.0-alpha.2",
+  "version": "2.6.0-alpha.3",
   "description": "Convert SpriteStudio files to akashic-animation files.",
   "bin": {
     "ss2asa": "bin/run"
