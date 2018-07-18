@@ -336,6 +336,7 @@ export function loadFromSSEE(proj: Project, data: any): void {
 			const edata: EffectParameterObject = { isEmitter: true, parentIndex: parentIndex, userData: {} } as any;
 			edata.userData.skinName = node.behavior[0].CellMapName[0].match(/(.*)\.[^.]+$/)[1];
 			edata.userData.cellName = node.behavior[0].CellName[0];
+			edata.userData.alphaBlendMode = node.behavior[0].BlendType[0] === "Add" ? "add" : "normal";
 			edata.initParam = {} as any;
 
 			const pdata = edata.initParam;
