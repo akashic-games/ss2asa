@@ -352,6 +352,7 @@ export function loadFromSSEE(proj: Project, data: any): void {
 					edata.maxParticles = parseInt(beh.maximumParticle[0], 10);
 					edata.activePeriod = frameStr2sec(beh.lifetime[0]);
 					edata.interval = frameStr2sec(beh.interval[0]);
+					edata.numParticlesPerEmit = parseInt(beh.attimeCreate[0], 10);
 					pdata.angle = [degStr2asaRadA((beh.angle[0]))];
 					if (beh.angleVariance[0] !== "0") {
 						const av2 = degStr2rad(beh.angleVariance[0]) / 2;
