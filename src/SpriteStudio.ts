@@ -417,7 +417,7 @@ export function loadFromSSEE(proj: Project, data: any): void {
 		i--;
 	}
 
-	list.forEach((l) => l.isEmitter = undefined);
+	list.forEach((l) => delete l.isEmitter);
 
 	const effect: vfx.EffectParameterObject = {
 		name: data.SpriteStudioEffect.name[0],
