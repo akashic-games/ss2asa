@@ -60,7 +60,7 @@ export function convert(options: Options): void {
 		(result: any) => { // promise to load ssae and ssce files
 			const fset = SS.createRelatedFileSetFromSSPJ(result);
 			const allFiles = fset.ssaeFileNames.concat(fset.ssceFileNames, fset.sseeFileNames);
-			return Promise.all( // すべてのpromiseが終了するのを待機するpromise
+			return Promise.all(
 				allFiles.map((fname: string) => {
 					console.log("loading... " + fname);
 					return loadAsyncPromise(path.join(pathToProj, fname));
