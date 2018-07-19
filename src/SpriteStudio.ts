@@ -325,7 +325,8 @@ export function loadFromSSEE(proj: Project, data: any): void {
 	const degStr2asaRadR = (degString: string) => -degStr2rad(degString);
 	const degStr2asaRadA = (degString: string) => -degStr2rad(degString) - deg2rad(90);
 
-	const list: { isEmitter?: boolean, parentIndex: number }[] = [];
+	const emitterParameters: { parentIndex: number }[] = [];
+	const emitterFlags: boolean[] = [];
 	for (let i = 0; i < nodeList.length; i++) {
 		const node = nodeList[i];
 		const nodeType = node.type[0];
@@ -333,7 +334,7 @@ export function loadFromSSEE(proj: Project, data: any): void {
 		const parentIndex = parseInt(node.parentIndex[0], 10);
 
 		if (nodeType === "Emmiter") {
-			const edata: EffectParameterObject = { isEmitter: true, parentIndex: parentIndex, userData: {} } as any;
+			const edata: EffectParameterObject = { parentIndex: parentIndex, userData: {} } as any;
 			edata.userData.skinName = node.behavior[0].CellMapName[0].match(/(.*)\.[^.]+$/)[1];
 			edata.userData.cellName = node.behavior[0].CellName[0];
 			edata.userData.alphaBlendMode = node.behavior[0].BlendType[0] === "Add" ? "add" : "normal";
@@ -394,34 +395,36 @@ export function loadFromSSEE(proj: Project, data: any): void {
 				pdata.tvrzNTOA = [parseFloat(trans_rotation_beh.EndLifeTimePer[0]) / 100];
 			}
 
-			list[nodeIndex] = edata;
+			emitterParameters[nodeIndex] = edata;
+			emitterFlags[nodeIndex] = true;
 		} else if (nodeType === "Particle") {
-			list[nodeIndex] = { parentIndex: parentIndex };
+			emitterParameters[nodeIndex] = { parentIndex: parentIndex };
+			emitterFlags[nodeIndex] = false;
 		} else {
-			list[nodeIndex] = { parentIndex: parentIndex };
+			emitterParameters[nodeIndex] = { parentIndex: parentIndex };
+			emitterFlags[nodeIndex] = false;
 		}
 	}
 
-	for (let i = 0; i < list.length; i++) {
-		if (list[i].isEmitter) {
+	for (let i = 0; i < emitterParameters.length; i++) {
+		if (emitterFlags[i]) {
 			continue;
 		}
-		for (let j = i + 1; j < list.length; j++) {
-			if (list[j].parentIndex === i) {
-				list[j].parentIndex = list[i].parentIndex;
-			} else if (list[j].parentIndex > i) {
-				--list[j].parentIndex;
+		for (let j = i + 1; j < emitterParameters.length; j++) {
+			if (emitterParameters[j].parentIndex === i) {
+				emitterParameters[j].parentIndex = emitterParameters[i].parentIndex;
+			} else if (emitterParameters[j].parentIndex > i) {
+				--emitterParameters[j].parentIndex;
 			}
 		}
-		list.splice(i, 1);
+		emitterParameters.splice(i, 1);
+		emitterFlags.splice(i, 1);
 		i--;
 	}
 
-	list.forEach((l) => delete l.isEmitter);
-
 	const effect: vfx.EffectParameterObject = {
 		name: data.SpriteStudioEffect.name[0],
-		emitterParameters: list as vfx.EmitterParameterObject[]
+		emitterParameters: emitterParameters as vfx.EmitterParameterObject[]
 	};
 
 	proj.effects.push(effect);
