@@ -344,6 +344,7 @@ export function loadFromSSEE(proj: Project, data: any): void {
 			const behaviors = node.behavior[0].list[0].value;
 			let trans_rotation_beh: any = null;
 			let trans_speed_beh: any = null;
+			let trans_size_beh: any = null;
 
 			for (let j = 0; j < behaviors.length; j++) {
 				const beh = behaviors[j];
@@ -379,6 +380,16 @@ export function loadFromSSEE(proj: Project, data: any): void {
 					edata.gy = -accStr2asaAcc(accs[1]);
 				} else if (behName === "InfiniteEmit") {
 					edata.activePeriod = -1;
+				} else if (behName === "init_size") {
+					pdata.sx = toNumbers(beh.SizeX[0].$);
+					pdata.sy = toNumbers(beh.SizeY[0].$);
+					pdata.sxy = toNumbers(beh.ScaleFactor[0].$);
+				} else if (behName === "trans_size") {
+					trans_size_beh = beh; // calc later.
+				} else if (behName === "trans_colorfade") {
+					const nums = toNumbers(beh.disprange[0].$);
+					pdata.fadeInNT = [nums[0] / 100];
+					pdata.fadeOutNT = [nums[1] / 100];
 				}
 			}
 
@@ -388,11 +399,24 @@ export function loadFromSSEE(proj: Project, data: any): void {
 				pdata.tv = toNumbers(trans_speed_beh.Speed[0].$, velStr2asaVel);
 				pdata.tvNTOA = [1.0];
 			}
+
 			if (trans_rotation_beh) {
 				pdata.arz = undefined;
 				pdata.tvrz = undefined;
 				pdata.tvrzC = [parseFloat(trans_rotation_beh.RotationFactor[0])];
 				pdata.tvrzNTOA = [parseFloat(trans_rotation_beh.EndLifeTimePer[0]) / 100];
+			}
+
+			if (trans_size_beh) { // a, v を上書きするためここで行う
+				pdata.asx = undefined;
+				pdata.vsx = undefined;
+				pdata.tsx = toNumbers(trans_size_beh.SizeX[0].$);
+				pdata.asy = undefined;
+				pdata.vsy = undefined;
+				pdata.tsy = toNumbers(trans_size_beh.SizeY[0].$);
+				pdata.asxy = undefined;
+				pdata.vsxy = undefined;
+				pdata.tsxy = toNumbers(trans_size_beh.ScaleFactor[0].$);
 			}
 
 			emitterParameters[nodeIndex] = edata;
