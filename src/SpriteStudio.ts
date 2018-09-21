@@ -18,7 +18,7 @@ interface UserData {
 };
 
 // 変換処理の都合で拡張したもの。これらは出力されない
-interface EffectParameterObject extends vfx.EmitterParameterObject {
+interface EffectParameterObject extends vfx.EffectEmitterParameterObject {
 	isEmitter: boolean;
 }
 
@@ -311,6 +311,11 @@ function toNumbers(pair: {value: string, subvalue: string}, filter?: (arr: strin
 	return arr.map(filter ? filter : parseFloat);
 }
 
+function toNumbers2(pair: {value: string, subvalue: string}, filter?: (arr: string) => number): number[] {
+	const arr = [pair.value, pair.subvalue];
+	return arr.map(filter ? filter : parseFloat);
+}
+
 export function loadFromSSEE(proj: Project, data: any): void {
 	const nodeList = data.SpriteStudioEffect.effectData[0].nodeList[0].node;
 	if (!nodeList || !nodeList.length) return;
@@ -325,7 +330,7 @@ export function loadFromSSEE(proj: Project, data: any): void {
 	const degStr2asaRadR = (degString: string) => -degStr2rad(degString);
 	const degStr2asaRadA = (degString: string) => -degStr2rad(degString) - deg2rad(90);
 
-	const emitterParameters: { parentIndex: number }[] = [];
+	const emitterParameters: ({ parentIndex: number })[] = [];
 	const emitterFlags: boolean[] = [];
 	for (let i = 0; i < nodeList.length; i++) {
 		const node = nodeList[i];
@@ -334,10 +339,10 @@ export function loadFromSSEE(proj: Project, data: any): void {
 		const parentIndex = parseInt(node.parentIndex[0], 10);
 
 		if (nodeType === "Emmiter") {
-			const edata: EffectParameterObject = { parentIndex: parentIndex, userData: {} } as any;
-			edata.userData.skinName = node.behavior[0].CellMapName[0].match(/(.*)\.[^.]+$/)[1];
-			edata.userData.cellName = node.behavior[0].CellName[0];
-			edata.userData.alphaBlendMode = node.behavior[0].BlendType[0] === "Add" ? "add" : "normal";
+			const edata: EffectParameterObject = { parentIndex: parentIndex, material: {} } as any;
+			edata.material.skinName = node.behavior[0].CellMapName[0].match(/(.*)\.[^.]+$/)[1];
+			edata.material.cellName = node.behavior[0].CellName[0];
+			edata.material.alphaBlendMode = node.behavior[0].BlendType[0] === "Add" ? "add" : "normal";
 			edata.initParam = {} as any;
 
 			const pdata = edata.initParam;
@@ -388,35 +393,49 @@ export function loadFromSSEE(proj: Project, data: any): void {
 					trans_size_beh = beh; // calc later.
 				} else if (behName === "trans_colorfade") {
 					const nums = toNumbers(beh.disprange[0].$);
-					pdata.fadeInNT = [nums[0] / 100];
-					pdata.fadeOutNT = [nums[1] / 100];
+					pdata.alphaTransition = {
+						multipyInitialValue: false,
+						points: [
+							nums[0] / 100, 1, 1,
+							nums[1] / 100, 1, 1,
+							0, 0
+						]
+					};
+					pdata.alpha = [0];
 				}
 			}
 
+			// v を変換するため最後に処理する
 			if (trans_speed_beh) {
-				pdata.a = undefined; // 実行時 最大速度 / lifetime で定まる
 				pdata.v = pdata.v.map(v => v / 2); // SS6のエフェクトの計算式に合わせる
-				pdata.tv = toNumbers(trans_speed_beh.Speed[0].$, velStr2asaVel);
-				pdata.tvNTOA = [1.0];
+				pdata.velocityTransition = {
+					multipyInitialValue: false,
+					points: toNumbers2(trans_speed_beh.Speed[0].$, velStr2asaVel)
+				}
 			}
 
 			if (trans_rotation_beh) {
-				pdata.arz = undefined;
-				pdata.tvrz = undefined;
-				pdata.tvrzC = [parseFloat(trans_rotation_beh.RotationFactor[0])];
-				pdata.tvrzNTOA = [parseFloat(trans_rotation_beh.EndLifeTimePer[0]) / 100];
+				const c = parseFloat(trans_rotation_beh.RotationFactor[0]);
+				const t = parseFloat(trans_rotation_beh.EndLifeTimePer[0]) / 100;
+				pdata.angularVelocityTransition = {
+					multipyInitialValue: true,
+					points: [t, c, c, c, c]
+				};
 			}
 
-			if (trans_size_beh) { // a, v を上書きするためここで行う
-				pdata.asx = undefined;
-				pdata.vsx = undefined;
-				pdata.tsx = toNumbers(trans_size_beh.SizeX[0].$);
-				pdata.asy = undefined;
-				pdata.vsy = undefined;
-				pdata.tsy = toNumbers(trans_size_beh.SizeY[0].$);
-				pdata.asxy = undefined;
-				pdata.vsxy = undefined;
-				pdata.tsxy = toNumbers(trans_size_beh.ScaleFactor[0].$);
+			if (trans_size_beh) {
+				pdata.scaleXTransition = {
+					multipyInitialValue: false,
+					points: toNumbers2(trans_size_beh.SizeX[0].$)
+				}
+				pdata.scaleYTransition = {
+					multipyInitialValue: false,
+					points: toNumbers2(trans_size_beh.SizeY[0].$)
+				}
+				pdata.scaleXYTransition = {
+					multipyInitialValue: false,
+					points: toNumbers2(trans_size_beh.ScaleFactor[0].$)
+				}
 			}
 
 			emitterParameters[nodeIndex] = edata;
@@ -448,7 +467,7 @@ export function loadFromSSEE(proj: Project, data: any): void {
 
 	const effect: vfx.EffectParameterObject = {
 		name: data.SpriteStudioEffect.name[0],
-		emitterParameters: emitterParameters as vfx.EmitterParameterObject[]
+		emitterParameters: emitterParameters as vfx.EffectEmitterParameterObject[]
 	};
 
 	proj.effects.push(effect);
