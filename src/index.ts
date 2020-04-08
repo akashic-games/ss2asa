@@ -7,7 +7,7 @@ import C = require("./converter");
 // Consts
 //
 const program_version = JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", "package.json"), "utf8")).version;
-const DEFAULT_PREFIXES = "pj_,bn_,sk_,an_";
+const DEFAULT_PREFIXES = "pj_,bn_,sk_,an_,ef_";
 
 //
 // Handle options and args
@@ -23,6 +23,7 @@ program
 	.option("-L, --label-as-user-data", "export labels as user data")
 	.option("-c, --combination-info", "output resoruce combination info")
 	.option("-r, --related-file-info", "output related file info")
+	.option("-s, --layout-size", "output layout size")
 	.option(
 		"-P, --set-prefix <[pj],[bn],[sk],[an]>",
 		"set prefixes. default: " + DEFAULT_PREFIXES,
@@ -63,7 +64,8 @@ const options: C.Options = {
 	labelAsUserData:       !!(<any>program).labelAsUserData,
 	outputUserData:        !!(<any>program).userData,
 	outputComboInfo:       !!(<any>program).combinationInfo,
-	outputRelatedFileInfo: !!(<any>program).relatedFileInfo
+	outputRelatedFileInfo: !!(<any>program).relatedFileInfo,
+	outputLayoutSize:      !!(<any>program).layoutSize
 };
 
 //

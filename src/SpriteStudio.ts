@@ -1,5 +1,5 @@
 import path = require("path");
-import {Skin, Cell, Bone, BoneSet, AnimeParams, ColliderInfo, AlphaBlendMode} from "@akashic-extension/akashic-animation";
+import {Skin, Cell, Bone, BoneSet, AnimeParams, ColliderInfo, AlphaBlendMode, vfx} from "@akashic-extension/akashic-animation";
 import Animation = AnimeParams.Animation;
 import CurveTie = AnimeParams.CurveTie;
 import Curve = AnimeParams.Curve;
@@ -16,6 +16,11 @@ interface UserData {
 	str?: string;
 	label?: string;
 };
+
+// 変換処理の都合で拡張したもの。これらは出力されない
+interface EffectParameterObject extends vfx.EmitterParameterObject {
+	isEmitter: boolean;
+}
 
 // SpriteStudioの属性名 と akashic-animationのAttrIdで定義される定数名の対応表
 // ここに載っている属性名のみ合法とする
@@ -41,7 +46,8 @@ const ssAttr2asaAttr: any = {
 	BNDR: "ccr",
 	FLPH: "flipH",
 	FLPV: "flipV",
-	USER: "userData"
+	USER: "userData",
+	EFCT: "effect"
 };
 
 // パーツ種別 "null" の扱える属性は以下に限られる
@@ -69,6 +75,7 @@ const validInterpolations: string[] = [
 export class RelatedFileSet {
 	ssceFileNames: string[] = [];
 	ssaeFileNames: string[] = [];
+	sseeFileNames: string[] = [];
 }
 
 export class Project {
@@ -76,6 +83,7 @@ export class Project {
 	skins: Skin[] = [];
 	boneSets: BoneSet[] = [];
 	animations: Animation[] = [];
+	effects: vfx.EffectParameterObject[] = [];
 	userData: any;
 	imageFileNames: string[] = [];
 }
@@ -92,6 +100,11 @@ export function createRelatedFileSetFromSSPJ(sspj: any): RelatedFileSet {
 	if (sspj.SpriteStudioProject.animepackNames) {
 		fileNames = sspj.SpriteStudioProject.animepackNames[0].value;
 		fileset.ssaeFileNames.push.apply(fileset.ssaeFileNames, fileNames);
+	}
+
+	if (sspj.SpriteStudioProject.effectFileNames) {
+		fileNames = sspj.SpriteStudioProject.effectFileNames[0].value;
+		fileset.sseeFileNames.push.apply(fileset.sseeFileNames, fileNames);
 	}
 
 	return fileset;
@@ -182,6 +195,7 @@ export interface LoadFromSSAEOptionObject {
 	outputUserData?: boolean;
 	outputComboInfo?: boolean;
 	outputRelatedFileInfo?: boolean;
+	outputLayoutSize?: boolean;
 }
 
 export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptionObject): void {
@@ -217,11 +231,10 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 		console.log("[INFO] ignore " + name + "'s animation because it has no animation data");
 		return;
 	}
-	const cellmapNames: string[] = data.SpriteStudioAnimePack.cellmapNames[0].value;
-	if (! cellmapNames) {
-		console.log("[INFO] ignore " + name + "'s animation because it has no cellmap name data");
-		return;
-	}
+
+	// nullだけまたはeffectだけのアニメだとcellを持たない
+	// effectサポートのためセルがないことを許容する (experimental)
+	const cellmapNames: string[] = data.SpriteStudioAnimePack.cellmapNames[0].value || [];
 
 	const skinNames: string[] = [];
 	cellmapNames.forEach((val: string) => {
@@ -266,12 +279,179 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 		}
 		proj.userData.combinationInfo.push(combo);
 	}
+
+	if (option.outputLayoutSize) {
+		const layoutSizes: {[key: string]: {width: number, height: number}} = {};
+
+		for (let i = 0; i < ssAnimeList.length; i++) {
+			const ssAnime = ssAnimeList[i];
+			if (ssAnime.isSetup && ssAnime.isSetup[0] === "1") {
+				continue;
+			}
+			const name = animationNamePrefix + ssAnime.name[0];
+			const canvasSizes = ssAnime.settings[0].canvasSize[0].split(" ");
+			const width = canvasSizes[0];
+			const height = canvasSizes[1];
+			layoutSizes[name] = {width: width, height: height};
+		}
+
+		proj.userData = (proj.userData || {});
+		proj.userData.layoutSizes = layoutSizes;
+	}
 }
 
 export function loadFromSSCE(proj: Project, data: any): void {
 	const skin: Skin = loadSkin(data);
 	proj.skins.push(skin);
 	proj.imageFileNames.push(getImageBaseName(data));
+}
+
+function toNumbers(pair: {value: string, subvalue: string}, filter?: (arr: string) => number): number[] {
+	const arr = (pair.value === pair.subvalue) ? [pair.value] : [pair.value, pair.subvalue];
+	return arr.map(filter ? filter : parseFloat);
+}
+
+export function loadFromSSEE(proj: Project, data: any): void {
+	const nodeList = data.SpriteStudioEffect.effectData[0].nodeList[0].node;
+	if (!nodeList || !nodeList.length) return;
+
+	const fps = parseInt(data.SpriteStudioEffect.effectData[0].fps[0], 10);
+	const frame2sec = (frame: number) => frame / fps;
+	const frameStr2sec = (frameString: string) => frame2sec(parseFloat(frameString));
+	const velStr2asaVel = (velString: string) => parseFloat(velString) * fps;
+	const accStr2asaAcc = (accString: string) => parseFloat(accString) * fps * fps;
+	const deg2rad = (deg: number) => deg / 180 * Math.PI;
+	const degStr2rad = (degString: string) => deg2rad(parseFloat(degString));
+	const degStr2asaRadR = (degString: string) => -degStr2rad(degString);
+	const degStr2asaRadA = (degString: string) => -degStr2rad(degString) - deg2rad(90);
+
+	const emitterParameters: { parentIndex: number }[] = [];
+	const emitterFlags: boolean[] = [];
+	for (let i = 0; i < nodeList.length; i++) {
+		const node = nodeList[i];
+		const nodeType = node.type[0];
+		const nodeIndex = parseInt(node.arrayIndex[0], 10);
+		const parentIndex = parseInt(node.parentIndex[0], 10);
+
+		if (nodeType === "Emmiter") {
+			const edata: EffectParameterObject = { parentIndex: parentIndex, userData: {} } as any;
+			edata.userData.skinName = node.behavior[0].CellMapName[0].match(/(.*)\.[^.]+$/)[1];
+			edata.userData.cellName = node.behavior[0].CellName[0];
+			edata.userData.alphaBlendMode = node.behavior[0].BlendType[0] === "Add" ? "add" : "normal";
+			edata.initParam = {} as any;
+
+			const pdata = edata.initParam;
+			const behaviors = node.behavior[0].list[0].value;
+			let trans_rotation_beh: any = null;
+			let trans_speed_beh: any = null;
+			let trans_size_beh: any = null;
+
+			for (let j = 0; j < behaviors.length; j++) {
+				const beh = behaviors[j];
+				const behName = beh.name[0];
+
+				if (behName === "Basic") {
+					edata.maxParticles = parseInt(beh.maximumParticle[0], 10);
+					edata.activePeriod = frameStr2sec(beh.lifetime[0]);
+					edata.interval = frameStr2sec(beh.interval[0]);
+					edata.numParticlesPerEmit = parseInt(beh.attimeCreate[0], 10);
+					pdata.angle = [degStr2asaRadA((beh.angle[0]))];
+					if (beh.angleVariance[0] !== "0") {
+						const av2 = degStr2rad(beh.angleVariance[0]) / 2;
+						pdata.angle = [pdata.angle[0] - av2, pdata.angle[0] + av2];
+					}
+					pdata.lifespan = toNumbers(beh.lifespan[0].$, frameStr2sec);
+					pdata.v = toNumbers(beh.speed[0].$, velStr2asaVel);
+				} else if (behName === "Delay") {
+					edata.delayEmit = frameStr2sec(beh.DelayTime);
+				} else if (behName === "init_position") {
+					pdata.tx = toNumbers(beh.OffsetX[0].$);
+					pdata.ty = toNumbers(beh.OffsetY[0].$).map((y) => -y);
+				} else if (behName === "trans_speed") {
+					trans_speed_beh = beh; // calc later.
+				} else if (behName === "init_rotation") {
+					pdata.rz = toNumbers(beh.Rotation[0].$, degStr2asaRadR);
+					pdata.vrz = toNumbers(beh.RotationAdd[0].$, degStr2asaRadR).map(vrz => vrz * fps);
+				} else if (behName === "trans_rotation") {
+					trans_rotation_beh = beh; // calc later.
+				} else if (behName === "Gravity") {
+					const accs = beh.Gravity[0].split(" ");
+					edata.gx = accStr2asaAcc(accs[0]);
+					edata.gy = -accStr2asaAcc(accs[1]);
+				} else if (behName === "InfiniteEmit") {
+					edata.activePeriod = -1;
+				} else if (behName === "init_size") {
+					pdata.sx = toNumbers(beh.SizeX[0].$);
+					pdata.sy = toNumbers(beh.SizeY[0].$);
+					pdata.sxy = toNumbers(beh.ScaleFactor[0].$);
+				} else if (behName === "trans_size") {
+					trans_size_beh = beh; // calc later.
+				} else if (behName === "trans_colorfade") {
+					const nums = toNumbers(beh.disprange[0].$);
+					pdata.fadeInNT = [nums[0] / 100];
+					pdata.fadeOutNT = [nums[1] / 100];
+				}
+			}
+
+			if (trans_speed_beh) {
+				pdata.a = undefined; // 実行時 最大速度 / lifetime で定まる
+				pdata.v = pdata.v.map(v => v / 2); // SS6のエフェクトの計算式に合わせる
+				pdata.tv = toNumbers(trans_speed_beh.Speed[0].$, velStr2asaVel);
+				pdata.tvNTOA = [1.0];
+			}
+
+			if (trans_rotation_beh) {
+				pdata.arz = undefined;
+				pdata.tvrz = undefined;
+				pdata.tvrzC = [parseFloat(trans_rotation_beh.RotationFactor[0])];
+				pdata.tvrzNTOA = [parseFloat(trans_rotation_beh.EndLifeTimePer[0]) / 100];
+			}
+
+			if (trans_size_beh) { // a, v を上書きするためここで行う
+				pdata.asx = undefined;
+				pdata.vsx = undefined;
+				pdata.tsx = toNumbers(trans_size_beh.SizeX[0].$);
+				pdata.asy = undefined;
+				pdata.vsy = undefined;
+				pdata.tsy = toNumbers(trans_size_beh.SizeY[0].$);
+				pdata.asxy = undefined;
+				pdata.vsxy = undefined;
+				pdata.tsxy = toNumbers(trans_size_beh.ScaleFactor[0].$);
+			}
+
+			emitterParameters[nodeIndex] = edata;
+			emitterFlags[nodeIndex] = true;
+		} else if (nodeType === "Particle") {
+			emitterParameters[nodeIndex] = { parentIndex: parentIndex };
+			emitterFlags[nodeIndex] = false;
+		} else {
+			emitterParameters[nodeIndex] = { parentIndex: parentIndex };
+			emitterFlags[nodeIndex] = false;
+		}
+	}
+
+	for (let i = 0; i < emitterParameters.length; i++) {
+		if (emitterFlags[i]) {
+			continue;
+		}
+		for (let j = i + 1; j < emitterParameters.length; j++) {
+			if (emitterParameters[j].parentIndex === i) {
+				emitterParameters[j].parentIndex = emitterParameters[i].parentIndex;
+			} else if (emitterParameters[j].parentIndex > i) {
+				--emitterParameters[j].parentIndex;
+			}
+		}
+		emitterParameters.splice(i, 1);
+		emitterFlags.splice(i, 1);
+		i--;
+	}
+
+	const effect: vfx.EffectParameterObject = {
+		name: data.SpriteStudioEffect.name[0],
+		emitterParameters: emitterParameters as vfx.EmitterParameterObject[]
+	};
+
+	proj.effects.push(effect);
 }
 
 function createColliderInfo(boundsType: string): ColliderInfo {
@@ -322,6 +502,7 @@ function loadBonesFromSSModels(models: any[]): Bone[] {
 				bone.children = undefined;
 				bone.colliderInfos = [];
 				bone.alphaBlendMode = exchangeAlphaBlendMode(v.alphaBlendType[0]);
+				bone.effectName = v.refEffectName ? v.refEffectName[0] : undefined;
 
 				const info = createColliderInfo(v.boundsType[0]);
 				if (info) { // "アタリ判定なし" の時 undefined が返る
@@ -571,6 +752,13 @@ function loadKeyFrames(attrType: string, keys: any[], skinNames: string[], outpu
 			result.rect  = val.rect    ? str2numbers(val.rect[0])  : undefined;
 			result.str   = val.string  ? val.string[0]             : undefined;
 			return result;
+		});
+		break;
+	case "EFCT":
+		curve = loadKeyFramesAs<vfx.EffectValue>(attrType, keys, (val: any): vfx.EffectValue => {
+			return {
+				emitterOp: val.independent[0] === "0" ? vfx.EmitterOperation.start : vfx.EmitterOperation.stop
+			};
 		});
 		break;
 	default:

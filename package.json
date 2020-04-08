@@ -1,6 +1,6 @@
 {
   "name": "@akashic-extension/ss2asa",
-  "version": "2.5.2",
+  "version": "2.6.0",
   "description": "Convert SpriteStudio files to akashic-animation files.",
   "bin": {
     "ss2asa": "bin/run"
@@ -37,18 +37,18 @@
     "gulp-jasmine": "^2.3.0",
     "gulp-shell": "^0.5.2",
     "gulp-tslint": "^4.3.5",
-    "tslint": "~3.7.4",
     "jasmine": "^2.5.3",
     "jasmine-reporters": "^2.2.0",
     "jasmine-terminal-reporter": "^1.0.3",
     "mdast": "~2.0.0",
     "mdast-lint": "~1.1.1",
-    "mock-fs": "4.4.2",
+    "mock-fs": "^4.11.0",
+    "tslint": "~3.7.4",
     "typescript": "^2.1.6",
     "typings": "^2.1.0"
   },
   "dependencies": {
-    "@akashic-extension/akashic-animation": "~3.0.2",
+    "@akashic-extension/akashic-animation": "3.1.0",
     "@akashic/akashic-engine": "~1.10.1",
     "commander": "^2.13.0",
     "fs-extra": "^2.0.0",
