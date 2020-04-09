@@ -24,6 +24,7 @@ program
 	.option("-c, --combination-info", "output resoruce combination info")
 	.option("-r, --related-file-info", "output related file info")
 	.option("-s, --layout-size", "output layout size")
+	.option("-b, --bundle-all", "bundle all asset files into an asapj file")
 	.option(
 		"-P, --set-prefix <[pj],[bn],[sk],[an]>",
 		"set prefixes. default: " + DEFAULT_PREFIXES,
@@ -57,6 +58,7 @@ const options: C.Options = {
 	addPrefix:             !!(<any>program).addPrefix,
 	verbose:               !!(<any>program).verbose,
 	prefixes:              prefixes,
+	bundleAll:             !!(<any>program).bundleAll,
 
 	// SS.LoadFromSSAEOptionObject
 	asaanLongName:         !!(<any>program).longName,

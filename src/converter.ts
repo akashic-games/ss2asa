@@ -14,13 +14,14 @@ export interface Options extends SS.LoadFromSSAEOptionObject {
 	outDir: string;
 	addPrefix: boolean;
 	verbose: boolean;
+	bundleAll: boolean;
 	prefixes: string[];
 }
 
 //
 // Consts
 //
-const FILEFORMAT_VERSION: string = "2.0.0"; // file format version
+const FILEFORMAT_VERSION: string = "3.0.0"; // file format version
 const FS_WRITE_OPTION: any = {encoding: "utf8"};
 enum Prefix {
 	Proj,
@@ -84,7 +85,7 @@ export function convert(options: Options): void {
 					console.log("unknow file type or broken file. skip");
 				}
 			});
-			writeAll(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo);
+			writeAll(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo, options.bundleAll);
 		},
 		(err: any) => {
 			console.log(err);
@@ -124,6 +125,14 @@ function writeNamedObjects<T extends { name: string }>(objs: T[], ext: string, o
 	return fileNames;
 }
 
+function resolveNamedObject<T extends { name: string; }>(objs: T[]): any {
+	const ret: any = {};
+	objs.forEach((obj: T): void => {
+		ret[obj.name] = obj;
+	});
+	return ret;
+}
+
 export class RelatedFileInfo {
 	boneSetFileNames: string[];
 	skinFileNames: string[];
@@ -140,19 +149,30 @@ export class RelatedFileInfo {
 	}
 }
 
-function writeAll(proj: SS.Project, outDir: string, prefixes: string[], outputRelatedFileInfo: boolean): void {
-	const boneSetFileNames = writeNamedObjects<BoneSet>(proj.boneSets, ".asabn", outDir, FILEFORMAT_VERSION, prefixes[Prefix.Bone]);
-	const skinFileNames = writeNamedObjects<Skin>(proj.skins, ".asask", outDir, FILEFORMAT_VERSION, prefixes[Prefix.Skin]);
-	const animFileNames = writeNamedObjects<AnimeParams.Animation>(
-		proj.animations, ".asaan", outDir, FILEFORMAT_VERSION, prefixes[Prefix.Anim]);
-	const effectFileNames = writeNamedObjects<any>(proj.effects, ".asaef", outDir, FILEFORMAT_VERSION, prefixes[Prefix.Effect]);
-	const contents: any = {
-		boneSetFileNames: boneSetFileNames,
-		skinFileNames: skinFileNames,
-		animationFileNames: animFileNames,
-		effectFileNames: effectFileNames,
-		userData: proj.userData
-	};
+function writeAll(proj: SS.Project, outDir: string, prefixes: string[], outputRelatedFileInfo: boolean, bundleAll: boolean = false): void {
+	let contents: any;
+	if (bundleAll) {
+		contents = {
+			boneSets: resolveNamedObject(proj.boneSets),
+			skins: resolveNamedObject(proj.skins),
+			animations: resolveNamedObject(proj.animations),
+			effects: resolveNamedObject(proj.effects),
+			userData: proj.userData
+		};
+	} else {
+		const boneSetFileNames = writeNamedObjects<BoneSet>(proj.boneSets, ".asabn", outDir, FILEFORMAT_VERSION, prefixes[Prefix.Bone]);
+		const skinFileNames = writeNamedObjects<Skin>(proj.skins, ".asask", outDir, FILEFORMAT_VERSION, prefixes[Prefix.Skin]);
+		const animFileNames = writeNamedObjects<AnimeParams.Animation>(
+			proj.animations, ".asaan", outDir, FILEFORMAT_VERSION, prefixes[Prefix.Anim]);
+		const effectFileNames = writeNamedObjects<any>(proj.effects, ".asaef", outDir, FILEFORMAT_VERSION, prefixes[Prefix.Effect]);
+		contents = {
+			boneSetFileNames: boneSetFileNames,
+			skinFileNames: skinFileNames,
+			animationFileNames: animFileNames,
+			effectFileNames: effectFileNames,
+			userData: proj.userData
+		};
+	}
 
 	if (outputRelatedFileInfo) {
 		if (! contents.userData) {
