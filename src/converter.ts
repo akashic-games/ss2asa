@@ -2,7 +2,7 @@ import path = require("path");
 import fs = require("fs-extra");
 import g = require("@akashic/akashic-engine");
 (<any>global).g = g;
-import {Skin, BoneSet, Container, AnimeParams} from "@akashic-extension/akashic-animation";
+import {Skin, BoneSet, Container, ContainerV2, Content, ContentType, AnimeParams} from "@akashic-extension/akashic-animation";
 import SS = require("./SpriteStudio");
 import U = require("./Utils");
 
@@ -21,7 +21,9 @@ export interface Options extends SS.LoadFromSSAEOptionObject {
 //
 // Consts
 //
-const FILEFORMAT_VERSION: string = "3.0.0"; // file format version
+const FILEFORMAT_VERSION_V2: string = "2.0.0"; // file format version (v2)
+const FILEFORMAT_VERSION: string = "3.0.0";    // file format version
+
 const FS_WRITE_OPTION: any = {encoding: "utf8"};
 enum Prefix {
 	Proj,
@@ -85,7 +87,11 @@ export function convert(options: Options): void {
 					console.log("unknow file type or broken file. skip");
 				}
 			});
-			writeAll(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo, options.bundleAll);
+			if (options.bundleAll) {
+				writeAllIntoProjectFile(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo);
+			} else {
+				writeAll(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo);
+			}
 		},
 		(err: any) => {
 			console.log(err);
@@ -115,7 +121,7 @@ function loadAsyncPromise(fname: string): Promise<any> {
 function writeNamedObjects<T extends { name: string }>(objs: T[], ext: string, outDir: string, version: string, prefix: string): string[] {
 	const fileNames: string[] = [];
 	objs.forEach((obj: T): void => {
-		const json: string = JSON.stringify(new Container(version, obj));
+		const json: string = JSON.stringify(new ContainerV2(version, obj));
 		const fileName = prefix + obj.name + ext;
 		const fullPath = path.join(outDir, fileName);
 		fs.writeFileSync(fullPath, json, FS_WRITE_OPTION);
@@ -125,12 +131,14 @@ function writeNamedObjects<T extends { name: string }>(objs: T[], ext: string, o
 	return fileNames;
 }
 
-function resolveNamedObject<T extends { name: string; }>(objs: T[]): any {
-	const ret: any = {};
+function addNamedObjectToContents<T extends { name: string }>(contents: Content<T>[], objs: T[], type: ContentType): void {
 	objs.forEach((obj: T): void => {
-		ret[obj.name] = obj;
+		contents.push({
+			type,
+			name: obj.name,
+			data: obj
+		});
 	});
-	return ret;
 }
 
 export class RelatedFileInfo {
@@ -150,29 +158,19 @@ export class RelatedFileInfo {
 }
 
 function writeAll(proj: SS.Project, outDir: string, prefixes: string[], outputRelatedFileInfo: boolean, bundleAll: boolean = false): void {
-	let contents: any;
-	if (bundleAll) {
-		contents = {
-			boneSets: resolveNamedObject(proj.boneSets),
-			skins: resolveNamedObject(proj.skins),
-			animations: resolveNamedObject(proj.animations),
-			effects: resolveNamedObject(proj.effects),
-			userData: proj.userData
-		};
-	} else {
-		const boneSetFileNames = writeNamedObjects<BoneSet>(proj.boneSets, ".asabn", outDir, FILEFORMAT_VERSION, prefixes[Prefix.Bone]);
-		const skinFileNames = writeNamedObjects<Skin>(proj.skins, ".asask", outDir, FILEFORMAT_VERSION, prefixes[Prefix.Skin]);
-		const animFileNames = writeNamedObjects<AnimeParams.Animation>(
-			proj.animations, ".asaan", outDir, FILEFORMAT_VERSION, prefixes[Prefix.Anim]);
-		const effectFileNames = writeNamedObjects<any>(proj.effects, ".asaef", outDir, FILEFORMAT_VERSION, prefixes[Prefix.Effect]);
-		contents = {
-			boneSetFileNames: boneSetFileNames,
-			skinFileNames: skinFileNames,
-			animationFileNames: animFileNames,
-			effectFileNames: effectFileNames,
-			userData: proj.userData
-		};
-	}
+	const version = FILEFORMAT_VERSION_V2;
+	const boneSetFileNames = writeNamedObjects<BoneSet>(proj.boneSets, ".asabn", outDir, version, prefixes[Prefix.Bone]);
+	const skinFileNames = writeNamedObjects<Skin>(proj.skins, ".asask", outDir, version, prefixes[Prefix.Skin]);
+	const animFileNames = writeNamedObjects<AnimeParams.Animation>(
+		proj.animations, ".asaan", outDir, version, prefixes[Prefix.Anim]);
+	const effectFileNames = writeNamedObjects<any>(proj.effects, ".asaef", outDir, version, prefixes[Prefix.Effect]);
+	const contents: any = {
+		boneSetFileNames: boneSetFileNames,
+		skinFileNames: skinFileNames,
+		animationFileNames: animFileNames,
+		effectFileNames: effectFileNames,
+		userData: proj.userData
+	};
 
 	if (outputRelatedFileInfo) {
 		if (! contents.userData) {
@@ -184,8 +182,34 @@ function writeAll(proj: SS.Project, outDir: string, prefixes: string[], outputRe
 		contents.userData.relatedFileInfo = new RelatedFileInfo(proj.imageFileNames, contents);
 	}
 
-	const con = new Container(FILEFORMAT_VERSION, contents);
+	const con = new ContainerV2(version, contents);
 	const json = JSON.stringify(con);
+	const pj_fname = path.join(outDir, prefixes[Prefix.Proj] + proj.name + ".asapj");
+	fs.writeFileSync(pj_fname, json, FS_WRITE_OPTION);
+
+	vlog.log("write " + pj_fname);
+}
+
+function writeAllIntoProjectFile(proj: SS.Project, outDir: string, prefixes: string[], outputRelatedFileInfo: boolean): void {
+	const version = FILEFORMAT_VERSION;
+	const contents: Content<any>[] = [];
+
+	const project: Content<any> = new Content("project", proj.name, { userData: proj.userData });
+	if (outputRelatedFileInfo) {
+		// ユーザデータにcontentsと同じものを格納している。
+		// asaファイル群のデータフォーマットは非公開としている。そのため
+		// 内容が重複するがuserDataに格納しなおし、こちらを公開する。
+		project.data.userData.relatedFileInfo = new RelatedFileInfo(proj.imageFileNames, contents);
+	}
+	contents.push(project);
+
+	addNamedObjectToContents(contents, proj.boneSets, "bone");
+	addNamedObjectToContents(contents, proj.skins, "skin");
+	addNamedObjectToContents(contents, proj.animations, "animation");
+	addNamedObjectToContents(contents, proj.effects, "effect");
+
+	const container = new Container(version, "bundle", contents);
+	const json = JSON.stringify(container);
 	const pj_fname = path.join(outDir, prefixes[Prefix.Proj] + proj.name + ".asapj");
 	fs.writeFileSync(pj_fname, json, FS_WRITE_OPTION);
 
