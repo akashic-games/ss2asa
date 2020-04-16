@@ -71,6 +71,41 @@ healer_walk.asaan
 
 この時各アニメーションデータの持つnameプロパティはロングネーム化されたファイル名と同じものになります。開発者はロングネームでアニメーションを指定してください。
 
+### -b, --bundle-all
+すべてのアセットデータをまとめてasapjファイルに出力します。
+
+例(contentsプロパティ内の関係のないものは省略):
+```json
+{
+    "version": "3.0.0",
+    "type": "bundle",
+    "contents": [
+        {
+            "type": "project",
+            "name": "SupportAlphaBlend",
+            "data": {
+                "userData": {}
+            }
+        },
+        {
+            "type": "bone",
+            "name": "SupportAlphaBlend",
+            "data": {}
+        },
+        {
+            "type": "skin",
+            "name": "SupportAlphaBlend",
+            "data": {}
+        },
+        {
+            "type": "animation",
+            "name": "support_alpha_blend",
+            "data": {}
+        }
+    ]
+}
+```
+
 ### -d, --delete-hidden
 SpriteStudio上で目玉アイコンを用いて非表示にしたパーツとそのアニメーションを削除します。
 
