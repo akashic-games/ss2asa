@@ -2,7 +2,7 @@ import path = require("path");
 import fs = require("fs-extra");
 import g = require("@akashic/akashic-engine");
 (<any>global).g = g;
-import {Skin, BoneSet, Container, ContainerV2, Content, ContentType, AnimeParams} from "@akashic-extension/akashic-animation";
+import {Skin, BoneSet, ContainerV2, ContainerV3, Content, ContentType, AnimeParams} from "@akashic-extension/akashic-animation";
 import SS = require("./SpriteStudio");
 import U = require("./Utils");
 
@@ -208,7 +208,7 @@ function writeAllIntoProjectFile(proj: SS.Project, outDir: string, prefixes: str
 	addNamedObjectToContents(contents, proj.animations, "animation");
 	addNamedObjectToContents(contents, proj.effects, "effect");
 
-	const container = new Container(version, "bundle", contents);
+	const container = new ContainerV3(version, "bundle", contents);
 	const json = JSON.stringify(container);
 	const pj_fname = path.join(outDir, prefixes[Prefix.Proj] + proj.name + ".asapj");
 	fs.writeFileSync(pj_fname, json, FS_WRITE_OPTION);
