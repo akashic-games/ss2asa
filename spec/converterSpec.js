@@ -4,7 +4,7 @@ var C = require("../lib/converter.js");
 
 describe("converter.", function () {
 
-	describe("convert", function () {
+	describe("convert()", function () {
 		it("can bundle all assets into the asapj file", function (done) {
 			spyOn(fs, "writeFileSync").and.callFake(function(_filename, str) {
 				var json = JSON.parse(str);

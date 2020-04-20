@@ -82,24 +82,24 @@ healer_walk.asaan
     "contents": [
         {
             "type": "project",
-            "name": "SupportAlphaBlend",
+            "name": "stickman",
             "data": {
                 "userData": {}
             }
         },
         {
             "type": "bone",
-            "name": "SupportAlphaBlend",
+            "name": "stickman",
             "data": {}
         },
         {
             "type": "skin",
-            "name": "SupportAlphaBlend",
+            "name": "stickman",
             "data": {}
         },
         {
             "type": "animation",
-            "name": "support_alpha_blend",
+            "name": "anime_1",
             "data": {}
         }
     ]
