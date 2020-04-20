@@ -131,7 +131,7 @@ function writeNamedObjects<T extends { name: string }>(objs: T[], ext: string, o
 	return fileNames;
 }
 
-function addNamedObjectToContents<T extends { name: string }>(contents: Content<T>[], objs: T[], type: ContentType): void {
+function addNamedObjectsToContents<T extends { name: string }>(contents: Content<T>[], objs: T[], type: ContentType): void {
 	objs.forEach((obj: T): void => {
 		contents.push({
 			type,
@@ -203,10 +203,10 @@ function writeAllIntoProjectFile(proj: SS.Project, outDir: string, prefixes: str
 	}
 	contents.push(project);
 
-	addNamedObjectToContents(contents, proj.boneSets, "bone");
-	addNamedObjectToContents(contents, proj.skins, "skin");
-	addNamedObjectToContents(contents, proj.animations, "animation");
-	addNamedObjectToContents(contents, proj.effects, "effect");
+	addNamedObjectsToContents(contents, proj.boneSets, "bone");
+	addNamedObjectsToContents(contents, proj.skins, "skin");
+	addNamedObjectsToContents(contents, proj.animations, "animation");
+	addNamedObjectsToContents(contents, proj.effects, "effect");
 
 	const container = new ContainerV3(version, "bundle", contents);
 	const json = JSON.stringify(container);
