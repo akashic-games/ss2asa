@@ -204,6 +204,20 @@ ss2asa.convert({
 });
 ```
 
+※ TypeScript で利用する場合、 `@akashic/akashic-engine` の型定義ファイルを `tsconfig.json` で指定する必要があります。
+
+```diff
+{
+  "compilerOptions": {
+    ...
+  },
++  "files": [
++    "node_modules/@akashic/akashic-engine/lib/main.d.ts"
++  ]
+  ...
+}
+```
+
 ## オプション
 * `projFileName: string` (required)
   * SpriteStudioのプロジェクトファイル
