@@ -12,15 +12,16 @@ import U = require("./Utils");
 export interface Options extends SS.LoadFromSSAEOptionObject {
 	projFileName: string;
 	outDir: string;
-	addPrefix: boolean;
-	verbose: boolean;
-	bundleAll: boolean;
-	prefixes: string[];
+	addPrefix?: boolean;
+	verbose?: boolean;
+	bundleAll?: boolean;
+	prefixes?: string[];
 }
 
 //
 // Consts
 //
+export const DEFAULT_PREFIXES = ["pj_", "bn_", "sk_", "an_", "ef_"];
 const FILEFORMAT_VERSION_V2: string = "2.0.0"; // file format version (v2)
 const FILEFORMAT_VERSION: string = "3.0.0";    // file format version
 
@@ -36,6 +37,7 @@ enum Prefix {
 let vlog: U.Logger = undefined;
 
 export function convert(options: Options): void {
+	options = completeOptions(options);
 	vlog = new U.Logger(options.verbose);
 
 	vlog.log("option:" + JSON.stringify(options));
@@ -102,6 +104,26 @@ export function convert(options: Options): void {
 			console.log(err.stack);
 		}
 	);
+}
+
+function completeOptions(opts: Options): Required<Options> {
+	return {
+		projFileName: opts.projFileName,
+		outDir: opts.outDir,
+		addPrefix: !!opts.addPrefix,
+		verbose: !!opts.verbose,
+		prefixes: Array.isArray(opts.prefixes) ? opts.prefixes : opts.addPrefix ? DEFAULT_PREFIXES : ["", "", "", ""],
+		bundleAll: !!opts.bundleAll,
+
+		// SS.LoadFromSSAEOptionObject
+		asaanLongName: !!opts.asaanLongName,
+		deleteHidden: !!opts.deleteHidden,
+		labelAsUserData: !!opts.labelAsUserData,
+		outputUserData: !!opts.outputUserData,
+		outputComboInfo: !!opts.outputComboInfo,
+		outputRelatedFileInfo: !!opts.outputRelatedFileInfo,
+		outputLayoutSize: !!opts.outputLayoutSize
+	};
 }
 
 function loadAsyncPromise(fname: string): Promise<any> {

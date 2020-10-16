@@ -8,6 +8,12 @@ SpriteStudio形式のファイルををakashic-animation形式にコンバート
 $ npm install -g @akashic-extension/ss2asa
 ```
 
+npx が利用できる環境では `ss2asa` を直接呼び出すこともできます。
+
+```sh
+$ npx -p @akashic-extension/ss2asa ss2asa project-file.sspj
+```
+
 Akashic Engineの詳細な利用方法については、 [公式ページ](https://akashic-games.github.io/) を参照してください。
 
 # 使い方
@@ -181,6 +187,50 @@ asapjファイルと関連するファイルの一覧をasapjファイルのユ�
     }
 }
 ```
+
+### -s, --layout-size
+アニメーションのレイアウト情報を出力します。`contents.userData.layoutSizes`プロパティからアクセスできます。
+
+# 使い方 (Node.js API)
+Node.js のモジュールとして呼び出すこともできます。
+
+```javascript
+var ss2asa = require("@akashic-extension/ss2asa");
+
+ss2asa.convert({
+    projFileName: "stickman.sspj",
+    outDir: "./out",
+    addPrefix: true
+});
+```
+
+## オプション
+* `projFileName: string` (required)
+  * SpriteStudioのプロジェクトファイル
+* `outDir: string` (required)
+  * 出力先ディレクトリ
+* `addPrefix?: boolean` (default: `false`)
+  * 出力ファイル名に接頭辞を追加するかどうか
+* `verbose?: boolean` (default: `false`)
+  * 実行時に詳細情報を出力するかどうか
+* `bundleAll?: boolean` (default: `false`)
+  * すべてのアセットデータをまとめてasapjファイルに出力するかどうか
+* `prefixes?: string[]` (default: `[]`)
+  * 出力ファイル名に追加する接頭辞の文字列配列 ([.asapj, .asabn, .asaan, .asask] の順)
+* `asaanLongName?: boolean` (default: `false`)
+  * asaanファイル名(アニメーション名が用いられる)の前にssaeファイル名を加えるかどうか
+* `deleteHidden?: boolean` (default: `false`)
+  * SpriteStudio上で目玉アイコンを用いて非表示にしたパーツとそのアニメーションを削除するかどうか
+* `labelAsUserData?: boolean` (default: `false`)
+  * ラベルをユーザデータ形式で出力するかどうか (`outputUserData` が `true` の場合)
+* `outputUserData?: boolean` (default: `false`)
+  * ユーザデータを出力するかどうか
+* `outputComboInfo?: boolean` (default: `false`)
+  * ボーン、スキン、アニメーションの有効な組み合わせの情報をasapjファイルのユーザデータとして出力するかどうか
+* `outputRelatedFileInfo?: boolean` (default: `false`)
+  * asapjファイルと関連するファイルの一覧をasapjファイルのユーザデータとして出力するかどうか
+* `outputLayoutSize?: boolean` (default: `false`)
+  * アニメーションのレイアウト情報を出力するかどうか
 
 # akashic-animationのサポートするアトリビュート
 以下のアトリビュートのアニメーションをサポートします。
