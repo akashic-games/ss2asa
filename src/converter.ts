@@ -123,7 +123,7 @@ function completeOptions(opts: Options): Required<Options> {
 		outputComboInfo: !!opts.outputComboInfo,
 		outputRelatedFileInfo: !!opts.outputRelatedFileInfo,
 		outputLayoutSize: !!opts.outputLayoutSize
-	}
+	};
 }
 
 function loadAsyncPromise(fname: string): Promise<any> {
