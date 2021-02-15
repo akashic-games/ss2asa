@@ -6,7 +6,7 @@ export function loadXmlAsJsAsync(fname: string, callback: (err: any, result: any
 	fs.readFile(fname, {encoding: "utf8"}, (err: Error, data: string) => {
 		console.log("*** loadXmlAsJsAsync", fname);
 		if (! err) {
-			console.log("*** loadXmlAsJsAsync err");
+			console.log("*** loadXmlAsJsAsync err", err);
 			const parser = new xml2js.Parser();
 			parser.parseString(data, (err: any, result: any) => {
 				callback(err, result);
