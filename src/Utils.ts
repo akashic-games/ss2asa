@@ -23,7 +23,7 @@ export class Logger {
 				console.log.apply(console, args);
 			};
 		} else {
-			this.log = (...args: any[]) => { /* nothing to do */ };
+			this.log = (..._args: any[]) => { /* nothing to do */ };
 		}
 	}
 }
