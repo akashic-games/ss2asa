@@ -2,13 +2,17 @@ import fs = require("fs");
 import xml2js = require("xml2js");
 
 export function loadXmlAsJsAsync(fname: string, callback: (err: any, result: any) => void): void {
+	console.log("*** loadXmlAsJsAsync start");
 	fs.readFile(fname, {encoding: "utf8"}, (err: Error, data: string) => {
+		console.log("*** loadXmlAsJsAsync", fname);
 		if (! err) {
+			console.log("*** loadXmlAsJsAsync err");
 			const parser = new xml2js.Parser();
 			parser.parseString(data, (err: any, result: any) => {
 				callback(err, result);
 			});
 		} else {
+			console.log("*** loadXmlAsJsAsync done");
 			callback(err, data);
 		}
 	});
