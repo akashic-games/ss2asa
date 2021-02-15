@@ -8,7 +8,7 @@ var Utils = require("../lib/Utils.js");
 describe("Utils.", function () {
 
 	afterEach(function () {
-		mockfs.restore();
+		// mockfs.restore();
 	});
 
 	describe("loadXmlAsJsAsync", function() {
@@ -25,7 +25,7 @@ describe("Utils.", function () {
 			// });
 
 			Utils.loadXmlAsJsAsync("./spec/support/src.xml", function(err, result) {
-				console.log("**err", err);
+				console.log("err", err);
 				expect(err).toBeFalsy();
 				expect(result.SpriteStudioProject.name[0]).toBe("pl00_all_motion");
 				done(); // 非同期処理はこのようにして終了を伝える
