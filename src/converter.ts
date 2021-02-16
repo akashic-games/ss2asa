@@ -1,13 +1,13 @@
-// akashic-animation が akashic-engine より前に宣言されるとテストで落ちるため、lint エラーを抑止
-/* eslint import/order: 0 */
 import path = require("path");
 import fs = require("fs-extra");
+// akashic-animation が akashic-engine より前に宣言されるとテストで落ちるため、lint エラーを抑止
+/* eslint import/order: 0 */
 import g = require("@akashic/akashic-engine");
 (<any>global).g = g;
 import { Skin, BoneSet, ContainerV2, ContainerV3, Content, ContentType, AnimeParams } from "@akashic-extension/akashic-animation";
+/* eslint import/order: 2 */
 import SS = require("./SpriteStudio");
 import U = require("./Utils");
-/* eslint import/order: 2 */
 
 //
 // Converter's option interface
@@ -182,7 +182,7 @@ export class RelatedFileInfo {
 	}
 }
 
-function writeAll(proj: SS.Project, outDir: string, prefixes: string[], outputRelatedFileInfo: boolean, _bundleAll: boolean = false): void {
+function writeAll(proj: SS.Project, outDir: string, prefixes: string[], outputRelatedFileInfo: boolean): void {
 	const version = FILEFORMAT_VERSION_V2;
 	const boneSetFileNames = writeNamedObjects<BoneSet>(proj.boneSets, ".asabn", outDir, version, prefixes[Prefix.Bone]);
 	const skinFileNames = writeNamedObjects<Skin>(proj.skins, ".asask", outDir, version, prefixes[Prefix.Skin]);

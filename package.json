@@ -8,8 +8,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublish": "npm run clean clean && npm run build",
-    "clean:typings": "rimraf ./typings",
+    "prepublish": "npm run clean && npm run build",
     "clean": "rimraf ./lib",
     "start": "npm run build && node bin/run",
     "build": "tsc -p ./",
