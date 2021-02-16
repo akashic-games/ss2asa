@@ -1,6 +1,6 @@
 import path = require("path");
 import fs = require("fs-extra");
-// akashic-animation が akashic-engine より前に宣言されるとテストで落ちるため、lint エラーを抑止
+// global.g が定義されていない状態で akashic-animation を import すると例外が発生するため lint エラーを抑止。
 /* eslint import/order: 0 */
 import g = require("@akashic/akashic-engine");
 (<any>global).g = g;
