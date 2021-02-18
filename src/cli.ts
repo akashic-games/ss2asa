@@ -1,19 +1,19 @@
-import program = require("commander");
 import fs = require("fs");
 import path = require("path");
+import program = require("commander");
 import C = require("./converter");
 
 //
 // Consts
 //
-const program_version = JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", "package.json"), "utf8")).version;
+const PROGRAM_VERSION = JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", "package.json"), "utf8")).version;
 const DEFAULT_PREFIXES = C.DEFAULT_PREFIXES.join(",");
 
 //
 // Handle options and args
 //
 program
-	.version(program_version)
+	.version(PROGRAM_VERSION)
 	.usage("[options] project_file")
 	.option("-o, --out-dir <outDir>", "set output directory", "./")
 	.option("-p, --add-prefix", "add prefix to each file")

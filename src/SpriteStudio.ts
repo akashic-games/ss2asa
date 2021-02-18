@@ -281,7 +281,7 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 	}
 
 	if (option.outputLayoutSize) {
-		const layoutSizes: {[key: string]: {width: number, height: number}} = {};
+		const layoutSizes: {[key: string]: {width: number; height: number}} = {};
 
 		for (let i = 0; i < ssAnimeList.length; i++) {
 			const ssAnime = ssAnimeList[i];
@@ -306,7 +306,7 @@ export function loadFromSSCE(proj: Project, data: any): void {
 	proj.imageFileNames.push(getImageBaseName(data));
 }
 
-function toNumbers(pair: {value: string, subvalue: string}, filter?: (arr: string) => number): number[] {
+function toNumbers(pair: {value: string; subvalue: string}, filter?: (arr: string) => number): number[] {
 	const arr = (pair.value === pair.subvalue) ? [pair.value] : [pair.value, pair.subvalue];
 	return arr.map(filter ? filter : parseFloat);
 }
@@ -316,14 +316,14 @@ export function loadFromSSEE(proj: Project, data: any): void {
 	if (!nodeList || !nodeList.length) return;
 
 	const fps = parseInt(data.SpriteStudioEffect.effectData[0].fps[0], 10);
-	const frame2sec = (frame: number) => frame / fps;
-	const frameStr2sec = (frameString: string) => frame2sec(parseFloat(frameString));
-	const velStr2asaVel = (velString: string) => parseFloat(velString) * fps;
-	const accStr2asaAcc = (accString: string) => parseFloat(accString) * fps * fps;
-	const deg2rad = (deg: number) => deg / 180 * Math.PI;
-	const degStr2rad = (degString: string) => deg2rad(parseFloat(degString));
-	const degStr2asaRadR = (degString: string) => -degStr2rad(degString);
-	const degStr2asaRadA = (degString: string) => -degStr2rad(degString) - deg2rad(90);
+	const frame2sec = (frame: number): number => frame / fps;
+	const frameStr2sec = (frameString: string): number => frame2sec(parseFloat(frameString));
+	const velStr2asaVel = (velString: string): number => parseFloat(velString) * fps;
+	const accStr2asaAcc = (accString: string): number => parseFloat(accString) * fps * fps;
+	const deg2rad = (deg: number): number => deg / 180 * Math.PI;
+	const degStr2rad = (degString: string): number => deg2rad(parseFloat(degString));
+	const degStr2asaRadR = (degString: string): number => -degStr2rad(degString);
+	const degStr2asaRadA = (degString: string): number => -degStr2rad(degString) - deg2rad(90);
 
 	const emitterParameters: { parentIndex: number }[] = [];
 	const emitterFlags: boolean[] = [];
@@ -342,9 +342,9 @@ export function loadFromSSEE(proj: Project, data: any): void {
 
 			const pdata = edata.initParam;
 			const behaviors = node.behavior[0].list[0].value;
-			let trans_rotation_beh: any = null;
-			let trans_speed_beh: any = null;
-			let trans_size_beh: any = null;
+			let transRotationBeh: any = null;
+			let transSpeedBeh: any = null;
+			let transSizeBeh: any = null;
 
 			for (let j = 0; j < behaviors.length; j++) {
 				const beh = behaviors[j];
@@ -368,12 +368,12 @@ export function loadFromSSEE(proj: Project, data: any): void {
 					pdata.tx = toNumbers(beh.OffsetX[0].$);
 					pdata.ty = toNumbers(beh.OffsetY[0].$).map((y) => -y);
 				} else if (behName === "trans_speed") {
-					trans_speed_beh = beh; // calc later.
+					transSpeedBeh = beh; // calc later.
 				} else if (behName === "init_rotation") {
 					pdata.rz = toNumbers(beh.Rotation[0].$, degStr2asaRadR);
 					pdata.vrz = toNumbers(beh.RotationAdd[0].$, degStr2asaRadR).map(vrz => vrz * fps);
 				} else if (behName === "trans_rotation") {
-					trans_rotation_beh = beh; // calc later.
+					transRotationBeh = beh; // calc later.
 				} else if (behName === "Gravity") {
 					const accs = beh.Gravity[0].split(" ");
 					edata.gx = accStr2asaAcc(accs[0]);
@@ -385,7 +385,7 @@ export function loadFromSSEE(proj: Project, data: any): void {
 					pdata.sy = toNumbers(beh.SizeY[0].$);
 					pdata.sxy = toNumbers(beh.ScaleFactor[0].$);
 				} else if (behName === "trans_size") {
-					trans_size_beh = beh; // calc later.
+					transSizeBeh = beh; // calc later.
 				} else if (behName === "trans_colorfade") {
 					const nums = toNumbers(beh.disprange[0].$);
 					pdata.fadeInNT = [nums[0] / 100];
@@ -393,30 +393,30 @@ export function loadFromSSEE(proj: Project, data: any): void {
 				}
 			}
 
-			if (trans_speed_beh) {
+			if (transSpeedBeh) {
 				pdata.a = undefined; // 実行時 最大速度 / lifetime で定まる
 				pdata.v = pdata.v.map(v => v / 2); // SS6のエフェクトの計算式に合わせる
-				pdata.tv = toNumbers(trans_speed_beh.Speed[0].$, velStr2asaVel);
+				pdata.tv = toNumbers(transSpeedBeh.Speed[0].$, velStr2asaVel);
 				pdata.tvNTOA = [1.0];
 			}
 
-			if (trans_rotation_beh) {
+			if (transRotationBeh) {
 				pdata.arz = undefined;
 				pdata.tvrz = undefined;
-				pdata.tvrzC = [parseFloat(trans_rotation_beh.RotationFactor[0])];
-				pdata.tvrzNTOA = [parseFloat(trans_rotation_beh.EndLifeTimePer[0]) / 100];
+				pdata.tvrzC = [parseFloat(transRotationBeh.RotationFactor[0])];
+				pdata.tvrzNTOA = [parseFloat(transRotationBeh.EndLifeTimePer[0]) / 100];
 			}
 
-			if (trans_size_beh) { // a, v を上書きするためここで行う
+			if (transSizeBeh) { // a, v を上書きするためここで行う
 				pdata.asx = undefined;
 				pdata.vsx = undefined;
-				pdata.tsx = toNumbers(trans_size_beh.SizeX[0].$);
+				pdata.tsx = toNumbers(transSizeBeh.SizeX[0].$);
 				pdata.asy = undefined;
 				pdata.vsy = undefined;
-				pdata.tsy = toNumbers(trans_size_beh.SizeY[0].$);
+				pdata.tsy = toNumbers(transSizeBeh.SizeY[0].$);
 				pdata.asxy = undefined;
 				pdata.vsxy = undefined;
-				pdata.tsxy = toNumbers(trans_size_beh.ScaleFactor[0].$);
+				pdata.tsxy = toNumbers(transSizeBeh.ScaleFactor[0].$);
 			}
 
 			emitterParameters[nodeIndex] = edata;
@@ -722,48 +722,48 @@ function loadKeyFrames(attrType: string, keys: any[], skinNames: string[], outpu
 	let curve: Curve<any> = undefined;
 
 	switch (attrType) {
-	case "CELL":
-		curve = loadKeyFramesAs<CellValue>(attrType, keys, (val: any): CellValue => {
-			const cellValue = new CellValue();
-			cellValue.skinName = skinNames[parseInt(val.mapId[0], 10)];
-			cellValue.cellName = val.name[0];
-			return cellValue;
-		});
-		break;
-	case "HIDE":
-		curve = loadKeyFramesAs<boolean>(attrType, keys, (val: string): boolean => {
-			return !parseBoolean(val); // trueの時表示としたいので逆転
-		});
-		break;
-	case "IFLH":
-	case "IFLV":
-	case "FLPH":
-	case "FLPV":
-		curve = loadKeyFramesAs<boolean>(attrType, keys, parseBoolean);
-		break;
-	case "USER":
-		if (! outputUserData) {
+		case "CELL":
+			curve = loadKeyFramesAs<CellValue>(attrType, keys, (val: any): CellValue => {
+				const cellValue = new CellValue();
+				cellValue.skinName = skinNames[parseInt(val.mapId[0], 10)];
+				cellValue.cellName = val.name[0];
+				return cellValue;
+			});
 			break;
-		}
-		curve = loadKeyFramesAs<any>(attrType, keys, (val: any): any => {
-			const result: UserData = {};
-			result.num   = val.integer ? Number(val.integer[0])    : undefined;
-			result.point = val.point   ? str2numbers(val.point[0]) : undefined;
-			result.rect  = val.rect    ? str2numbers(val.rect[0])  : undefined;
-			result.str   = val.string  ? val.string[0]             : undefined;
-			return result;
-		});
-		break;
-	case "EFCT":
-		curve = loadKeyFramesAs<vfx.EffectValue>(attrType, keys, (val: any): vfx.EffectValue => {
-			return {
-				emitterOp: val.independent[0] === "0" ? vfx.EmitterOperation.start : vfx.EmitterOperation.stop
-			};
-		});
-		break;
-	default:
-		curve = loadKeyFramesAs<number>(attrType, keys, parseFloat);
-		break;
+		case "HIDE":
+			curve = loadKeyFramesAs<boolean>(attrType, keys, (val: string): boolean => {
+				return !parseBoolean(val); // trueの時表示としたいので逆転
+			});
+			break;
+		case "IFLH":
+		case "IFLV":
+		case "FLPH":
+		case "FLPV":
+			curve = loadKeyFramesAs<boolean>(attrType, keys, parseBoolean);
+			break;
+		case "USER":
+			if (! outputUserData) {
+				break;
+			}
+			curve = loadKeyFramesAs<any>(attrType, keys, (val: any): any => {
+				const result: UserData = {};
+				result.num   = val.integer ? Number(val.integer[0])    : undefined;
+				result.point = val.point   ? str2numbers(val.point[0]) : undefined;
+				result.rect  = val.rect    ? str2numbers(val.rect[0])  : undefined;
+				result.str   = val.string  ? val.string[0]             : undefined;
+				return result;
+			});
+			break;
+		case "EFCT":
+			curve = loadKeyFramesAs<vfx.EffectValue>(attrType, keys, (val: any): vfx.EffectValue => {
+				return {
+					emitterOp: val.independent[0] === "0" ? vfx.EmitterOperation.start : vfx.EmitterOperation.stop
+				};
+			});
+			break;
+		default:
+			curve = loadKeyFramesAs<number>(attrType, keys, parseFloat);
+			break;
 	}
 
 	return curve;

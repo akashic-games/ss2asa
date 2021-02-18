@@ -1,8 +1,11 @@
 import path = require("path");
 import fs = require("fs-extra");
+// global.g が定義されていない状態で akashic-animation を import すると例外が発生するため lint エラーを抑止。
+/* eslint import/order: 0 */
 import g = require("@akashic/akashic-engine");
 (<any>global).g = g;
-import {Skin, BoneSet, ContainerV2, ContainerV3, Content, ContentType, AnimeParams} from "@akashic-extension/akashic-animation";
+import { Skin, BoneSet, ContainerV2, ContainerV3, Content, ContentType, AnimeParams } from "@akashic-extension/akashic-animation";
+/* eslint import/order: 2 */
 import SS = require("./SpriteStudio");
 import U = require("./Utils");
 
@@ -46,10 +49,10 @@ export function convert(options: Options): void {
 	const proj = new SS.Project();
 	proj.name = path.basename(options.projFileName, ".sspj");
 
-	const p: Promise<any> = new Promise<string>( // promise to create output directory
+	const p: Promise<any> = new Promise<void>( // promise to create output directory
 		(resolve: () => void, reject: (error: any) => void) => {
 			fs.ensureDir(options.outDir, (err: any) => {
-				err ? reject(err) : resolve();
+				return err ? reject(err) : resolve();
 			});
 		}
 	);
@@ -61,49 +64,49 @@ export function convert(options: Options): void {
 			console.log(err);
 		}
 	)
-	.then(
-		(result: any) => { // promise to load ssae and ssce files
-			const fset = SS.createRelatedFileSetFromSSPJ(result);
-			const allFiles = fset.ssaeFileNames.concat(fset.ssceFileNames, fset.sseeFileNames);
-			return Promise.all(
-				allFiles.map((fname: string) => {
-					console.log("loading... " + fname);
-					return loadAsyncPromise(path.join(pathToProj, fname));
-				})
-			);
-		},
-		(err: any) => {
-			console.log(err);
-		}
-	)
-	.then(
-		(results: any[]) => { // write all files
-			results.map((result: any) => {
-				if ("SpriteStudioAnimePack" in result) { // SSAE
-					SS.loadFromSSAE(proj, result, options);
-				} else if ("SpriteStudioCellMap" in result) {
-					SS.loadFromSSCE(proj, result);
-				} else if ("SpriteStudioEffect" in result) {
-					SS.loadFromSSEE(proj, result);
-				} else {
-					console.log("unknow file type or broken file. skip");
-				}
-			});
-			if (options.bundleAll) {
-				writeAllIntoProjectFile(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo);
-			} else {
-				writeAll(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo);
+		.then(
+			(result: any) => { // promise to load ssae and ssce files
+				const fset = SS.createRelatedFileSetFromSSPJ(result);
+				const allFiles = fset.ssaeFileNames.concat(fset.ssceFileNames, fset.sseeFileNames);
+				return Promise.all(
+					allFiles.map((fname: string) => {
+						console.log("loading... " + fname);
+						return loadAsyncPromise(path.join(pathToProj, fname));
+					})
+				);
+			},
+			(err: any) => {
+				console.log(err);
 			}
-		},
-		(err: any) => {
-			console.log(err);
-		}
-	)
-	.catch(
-		(err: any) => { // 例外が投げられた時は全てここに到達する
-			console.log(err.stack);
-		}
-	);
+		)
+		.then(
+			(results: any[]) => { // write all files
+				results.map((result: any) => {
+					if ("SpriteStudioAnimePack" in result) { // SSAE
+						SS.loadFromSSAE(proj, result, options);
+					} else if ("SpriteStudioCellMap" in result) {
+						SS.loadFromSSCE(proj, result);
+					} else if ("SpriteStudioEffect" in result) {
+						SS.loadFromSSEE(proj, result);
+					} else {
+						console.log("unknow file type or broken file. skip");
+					}
+				});
+				if (options.bundleAll) {
+					writeAllIntoProjectFile(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo);
+				} else {
+					writeAll(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo);
+				}
+			},
+			(err: any) => {
+				console.log(err);
+			}
+		)
+		.catch(
+			(err: any) => { // 例外が投げられた時は全てここに到達する
+				console.log(err.stack);
+			}
+		);
 }
 
 function completeOptions(opts: Options): Required<Options> {
@@ -179,7 +182,7 @@ export class RelatedFileInfo {
 	}
 }
 
-function writeAll(proj: SS.Project, outDir: string, prefixes: string[], outputRelatedFileInfo: boolean, bundleAll: boolean = false): void {
+function writeAll(proj: SS.Project, outDir: string, prefixes: string[], outputRelatedFileInfo: boolean): void {
 	const version = FILEFORMAT_VERSION_V2;
 	const boneSetFileNames = writeNamedObjects<BoneSet>(proj.boneSets, ".asabn", outDir, version, prefixes[Prefix.Bone]);
 	const skinFileNames = writeNamedObjects<Skin>(proj.skins, ".asask", outDir, version, prefixes[Prefix.Skin]);
@@ -206,10 +209,10 @@ function writeAll(proj: SS.Project, outDir: string, prefixes: string[], outputRe
 
 	const con = new ContainerV2(version, contents);
 	const json = JSON.stringify(con);
-	const pj_fname = path.join(outDir, prefixes[Prefix.Proj] + proj.name + ".asapj");
-	fs.writeFileSync(pj_fname, json, FS_WRITE_OPTION);
+	const pjFname = path.join(outDir, prefixes[Prefix.Proj] + proj.name + ".asapj");
+	fs.writeFileSync(pjFname, json, FS_WRITE_OPTION);
 
-	vlog.log("write " + pj_fname);
+	vlog.log("write " + pjFname);
 }
 
 function writeAllIntoProjectFile(proj: SS.Project, outDir: string, prefixes: string[], outputRelatedFileInfo: boolean): void {
@@ -232,8 +235,8 @@ function writeAllIntoProjectFile(proj: SS.Project, outDir: string, prefixes: str
 
 	const container = new ContainerV3(version, "bundle", contents);
 	const json = JSON.stringify(container);
-	const pj_fname = path.join(outDir, prefixes[Prefix.Proj] + proj.name + ".asapj");
-	fs.writeFileSync(pj_fname, json, FS_WRITE_OPTION);
+	const pjFname = path.join(outDir, prefixes[Prefix.Proj] + proj.name + ".asapj");
+	fs.writeFileSync(pjFname, json, FS_WRITE_OPTION);
 
-	vlog.log("write " + pj_fname);
+	vlog.log("write " + pjFname);
 }

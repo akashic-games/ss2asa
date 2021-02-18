@@ -1,7 +1,7 @@
 # ss2asa
 SpriteStudio形式のファイルををakashic-animation形式にコンバートするコマンドラインツール。
 
-# インストール
+## インストール
 
 `ss2asa` は `Node.js` で動作します。以下のコマンドでインストールできます。
 ```sh
@@ -16,7 +16,7 @@ $ npx -p @akashic-extension/ss2asa ss2asa project-file.sspj
 
 Akashic Engineの詳細な利用方法については、 [公式ページ](https://akashic-games.github.io/) を参照してください。
 
-# 使い方
+## 使い方
 SpriteStudioのプロジェクトファイルを渡してください。関連ファイル(ssae,ssce)を含めすべてコンバートします。
 
 ```sh
@@ -35,7 +35,7 @@ $ ss2asa project-file.sspj
 ### -h, --help
 ヘルプを表示します。
 
-## -V, --version
+### -V, --version
 バージョンを表示します。
 
 ### -o, --out-dir
@@ -191,7 +191,7 @@ asapjファイルと関連するファイルの一覧をasapjファイルのユ�
 ### -s, --layout-size
 アニメーションのレイアウト情報を出力します。`contents.userData.layoutSizes`プロパティからアクセスできます。
 
-# 使い方 (Node.js API)
+## 使い方 (Node.js API)
 Node.js のモジュールとして呼び出すこともできます。
 
 ```javascript
@@ -246,7 +246,7 @@ ss2asa.convert({
 * `outputLayoutSize?: boolean` (default: `false`)
   * アニメーションのレイアウト情報を出力するかどうか
 
-# akashic-animationのサポートするアトリビュート
+## akashic-animationのサポートするアトリビュート
 以下のアトリビュートのアニメーションをサポートします。
 * 参照セル
 * X座標
@@ -271,7 +271,7 @@ ss2asa.convert({
 * 当たり半径
 * ユーザーデータ
 
-# 補足
+## 補足
 ## キーフレームの外挿
 akashic-animationは再生するアニメーションの0フレーム目がキーフレームでない時、0フレーム目に初期値を与えます。初期値は属性により異なります（次の表参照）。
 
@@ -301,7 +301,8 @@ akashic-animationは再生するアニメーションの0フレーム目がキ�
 
 
 ## セルマップ参照イメージのアセット名に関する制限
-`ss2asa`はセルマップの参照するイメージのアセット名として、もとのイメージファイル名から拡張子を除いたものをasaskファイルに保存します。たとえば"stickman.png"のアセット名は"stickman"となります。もしgame.jsonで指定されるイメージアセット名がファイル名から拡張子を除いたものでない時、実行時エラーとなります(game.jsonの更新に`akashic-cli`を使用している限りそのような不整合は起こりません)。
+`ss2asa`はセルマップの参照するイメージのアセット名として、もとのイメージファイル名から拡張子を除いたものをasaskファイルに保存します。たとえば"stickman.png"のアセット名は"stickman"となります。
+もしgame.jsonで指定されるイメージアセット名がファイル名から拡張子を除いたものでない時、実行時エラーとなります(game.jsonの更新に`akashic-cli`を使用している限りそのような不整合は起こりません)。
 
 ## NULLパーツから出力される属性値に関する制限
 ss2asaはNULLパーツの持つ属性値の内、以下のもののみを出力します。
