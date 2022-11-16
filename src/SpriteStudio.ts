@@ -638,6 +638,10 @@ function mirrorCurve(curve: Curve<any>): void {
 	if (curve.attribute === "rz" || curve.attribute === "ty" || curve.attribute === "pvty") {
 		curve.keyFrames.forEach((keyFrame: KeyFrame<any>) => {
 			keyFrame.value *= -1;
+			if (keyFrame.ipCurve) {
+				keyFrame.ipCurve.values[1] *= -1;
+				keyFrame.ipCurve.values[3] *= -1;
+			}
 		});
 	}
 }
