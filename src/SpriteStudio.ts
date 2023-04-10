@@ -69,7 +69,9 @@ const validInterpolations: string[] = [
 	"undefined",
 	"linear",
 	"bezier",
-	"hermite"
+	"hermite",
+	"acceleration",
+	"deceleration"
 ];
 
 export class RelatedFileSet {
