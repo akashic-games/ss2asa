@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<SpriteStudioAnimePack version="1.02.00">
+<SpriteStudioAnimePack version="2.01.00" editorVersion="7.1.1">
 	<settings>
 		<fps>30</fps>
 		<frameCount>11</frameCount>
@@ -9,9 +9,28 @@
 		<bgColor>FF323232</bgColor>
 		<gridSize>32</gridSize>
 		<gridColor>FF808080</gridColor>
+		<ik_depth>3</ik_depth>
+		<startFrame>0</startFrame>
+		<endFrame>10</endFrame>
+		<bgSettings>
+			<value>
+				<imagePath></imagePath>
+				<imageDisp>1</imageDisp>
+				<imageOffset>0 0</imageOffset>
+				<imageCanvas>0 0</imageCanvas>
+				<imagePivot>0 0</imagePivot>
+			</value>
+			<value>
+				<imagePath></imagePath>
+				<imageDisp>1</imageDisp>
+				<imageOffset>0 0</imageOffset>
+				<imageCanvas>0 0</imageCanvas>
+				<imagePivot>0 0</imagePivot>
+			</value>
+		</bgSettings>
 		<outStartNum>0</outStartNum>
 	</settings>
-	<name>accel</name>
+	<name>easeIn</name>
 	<exportPath></exportPath>
 	<Model>
 		<partList>
@@ -24,17 +43,20 @@
 				<inheritType>parent</inheritType>
 				<ineheritRates>
 					<ALPH>1</ALPH>
+					<IFLH>0</IFLH>
+					<IFLV>0</IFLV>
 					<FLPH>0</FLPH>
 					<FLPV>0</FLPV>
 					<HIDE>0</HIDE>
-					<IFLH>0</IFLH>
-					<IFLV>0</IFLV>
 				</ineheritRates>
 				<alphaBlendType>mix</alphaBlendType>
 				<show>1</show>
 				<locked>0</locked>
 				<expandAttribute>0</expandAttribute>
 				<expandChildren>1</expandChildren>
+				<refCellTag></refCellTag>
+				<maskInfluence>1</maskInfluence>
+				<outputInfluence>1</outputInfluence>
 			</value>
 			<value>
 				<name>head</name>
@@ -45,24 +67,78 @@
 				<inheritType>parent</inheritType>
 				<ineheritRates>
 					<ALPH>1</ALPH>
+					<IFLH>0</IFLH>
+					<IFLV>0</IFLV>
 					<FLPH>0</FLPH>
 					<FLPV>0</FLPV>
 					<HIDE>0</HIDE>
-					<IFLH>0</IFLH>
-					<IFLV>0</IFLV>
 				</ineheritRates>
 				<alphaBlendType>mix</alphaBlendType>
 				<show>1</show>
 				<locked>0</locked>
 				<expandAttribute>1</expandAttribute>
 				<expandChildren>1</expandChildren>
+				<refCellTag></refCellTag>
+				<maskInfluence>1</maskInfluence>
+				<outputInfluence>1</outputInfluence>
 			</value>
 		</partList>
+		<boneList />
+		<meshList />
 	</Model>
 	<cellmapNames>
 		<value>stickman.ssce</value>
 	</cellmapNames>
 	<animeList>
+		<anime>
+			<name>Setup</name>
+			<overrideSettings>1</overrideSettings>
+			<settings>
+				<fps>30</fps>
+				<frameCount>1</frameCount>
+				<sortMode>prio</sortMode>
+				<canvasSize>320 320</canvasSize>
+				<pivot>0 0</pivot>
+				<bgColor>FF323232</bgColor>
+				<gridSize>32</gridSize>
+				<gridColor>FF808080</gridColor>
+				<ik_depth>3</ik_depth>
+				<startFrame>0</startFrame>
+				<endFrame>0</endFrame>
+				<bgSettings>
+					<value>
+						<imagePath></imagePath>
+						<imageDisp>1</imageDisp>
+						<imageOffset>0 0</imageOffset>
+						<imageCanvas>0 0</imageCanvas>
+						<imagePivot>0 0</imagePivot>
+					</value>
+					<value>
+						<imagePath></imagePath>
+						<imageDisp>1</imageDisp>
+						<imageOffset>0 0</imageOffset>
+						<imageCanvas>0 0</imageCanvas>
+						<imagePivot>0 0</imagePivot>
+					</value>
+				</bgSettings>
+				<outStartNum>0</outStartNum>
+			</settings>
+			<labels />
+			<guidelines />
+			<isSetup>1</isSetup>
+			<partAnimes>
+				<partAnime>
+					<partName>root</partName>
+					<attributes>
+						<attribute tag="HIDE">
+							<key time="0">
+								<value>0</value>
+							</key>
+						</attribute>
+					</attributes>
+				</partAnime>
+			</partAnimes>
+		</anime>
 		<anime>
 			<name>anime_1</name>
 			<overrideSettings>1</overrideSettings>
@@ -75,9 +151,30 @@
 				<bgColor>FF323232</bgColor>
 				<gridSize>32</gridSize>
 				<gridColor>FF808080</gridColor>
+				<ik_depth>3</ik_depth>
+				<startFrame>0</startFrame>
+				<endFrame>10</endFrame>
+				<bgSettings>
+					<value>
+						<imagePath></imagePath>
+						<imageDisp>1</imageDisp>
+						<imageOffset>0 0</imageOffset>
+						<imageCanvas>0 0</imageCanvas>
+						<imagePivot>0 0</imagePivot>
+					</value>
+					<value>
+						<imagePath></imagePath>
+						<imageDisp>1</imageDisp>
+						<imageOffset>0 0</imageOffset>
+						<imageCanvas>0 0</imageCanvas>
+						<imagePivot>0 0</imagePivot>
+					</value>
+				</bgSettings>
 				<outStartNum>0</outStartNum>
 			</settings>
 			<labels />
+			<guidelines />
+			<isSetup>0</isSetup>
 			<partAnimes>
 				<partAnime>
 					<partName>root</partName>
@@ -104,10 +201,10 @@
 							<key time="0" ipType="linear">
 								<value>0</value>
 							</key>
-							<key time="3" ipType="acceleration">
+							<key time="3" ipType="easeIn" easingRate="1">
 								<value>-107</value>
 							</key>
-							<key time="7" ipType="acceleration">
+							<key time="7" ipType="easeIn" easingRate="1">
 								<value>112</value>
 							</key>
 							<key time="10" ipType="linear">
@@ -118,10 +215,10 @@
 							<key time="0" ipType="linear">
 								<value>0</value>
 							</key>
-							<key time="3" ipType="acceleration">
+							<key time="3" ipType="easeIn" easingRate="1">
 								<value>-109</value>
 							</key>
-							<key time="7" ipType="acceleration">
+							<key time="7" ipType="easeIn" easingRate="1">
 								<value>112</value>
 							</key>
 							<key time="10" ipType="linear">

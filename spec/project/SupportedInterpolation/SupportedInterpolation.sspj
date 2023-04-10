@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <SpriteStudioProject version="2.01.00" editorVersion="7.1.1">
-	<name>UnsupportedInterpolation</name>
+	<name>SupportedInterpolation</name>
 	<exportPath></exportPath>
 	<settings>
 		<animeBaseDirectory></animeBaseDirectory>
@@ -196,13 +196,13 @@
 		<value>stickman.ssce</value>
 	</cellmapNames>
 	<animepackNames>
-		<value>easeIn.ssae</value>
+		<value>interpolation.ssae</value>
 	</animepackNames>
 	<ExternalTextures>
 		<files />
 	</ExternalTextures>
-	<lastAnimeFile></lastAnimeFile>
-	<lastAnimeName></lastAnimeName>
+	<lastAnimeFile>interpolation.ssae</lastAnimeFile>
+	<lastAnimeName>deceleration</lastAnimeName>
 	<lastPart>head</lastPart>
 	<lastCellMapFile>stickman.ssce</lastCellMapFile>
 	<lastCell>head</lastCell>
