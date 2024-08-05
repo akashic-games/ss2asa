@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased changes
+
+* ポーターを指定する -t, --porter オプションを追加
+  * aop を指定するとファイル容量が削減される
+* 未知のアトリビュートを無視する --ignore-unknown-attribute オプションを追加
+
 ## 2.8.0
 
 * SpriteStudioで利用される補間方法の一部をサポート

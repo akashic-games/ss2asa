@@ -4,31 +4,16 @@ var path = require("path");
 var U = require("../lib/Utils.js");
 var SS = require("../lib/SpriteStudio.js");
 
-// 非同期読み込み `U.loadXmlAsJsAsync()` を promise 化
-function loadXmlPromise(fname) {
-	var promise = new Promise(function (resolve, reject) {
-		U.loadXmlAsJsAsync(fname, function(err, result) {
-			if (! err) {
-				resolve(result);
-			} else {
-				reject(err);
-			}
-		});
-	});
-
-	return promise;
-}
-
 function loadProjectPromise(fname) {
 	var pathToProj = path.dirname(fname);
 
-	var promise = loadXmlPromise(fname)
+	var promise = U.loadXMLFileAsyncPromise(fname)
 	.then(function(result) {
 		var fset = SS.createRelatedFileSetFromSSPJ(result);
 		var allFiles = fset.ssaeFileNames.concat(fset.ssceFileNames);
 		var promises = allFiles.map(function(fname) {
 			fname = path.join(pathToProj, fname);
-			var r = loadXmlPromise(fname);
+			var r = U.loadXMLFileAsyncPromise(fname);
 			return r;
 		});
 		return Promise.all(promises);

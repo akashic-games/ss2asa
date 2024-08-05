@@ -1,17 +1,10 @@
 import fs = require("fs");
 import path = require("path");
-import program = require("commander");
+import { program, Option } from "commander";
 import C = require("./converter");
 
-//
-// Consts
-//
 const PROGRAM_VERSION = JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", "package.json"), "utf8")).version;
-const DEFAULT_PREFIXES = C.DEFAULT_PREFIXES.join(",");
 
-//
-// Handle options and args
-//
 program
 	.version(PROGRAM_VERSION)
 	.usage("[options] project_file")
@@ -26,58 +19,45 @@ program
 	.option("-s, --layout-size", "output layout size")
 	.option("-b, --bundle-all", "bundle all asset files into an asapj file")
 	.option(
-		"-P, --set-prefix <[pj],[bn],[sk],[an]>",
-		"set prefixes. default: " + DEFAULT_PREFIXES,
-		(list: string): string[] => {
-			return list.split(",");
-		}
+		"-P, --set-prefix <[pj],[bn],[sk],[an],[ef]>",
+		"set file name prefixes",
+		list => list.split(",")
 	)
+	.addOption(new Option("--porter <porter>", "set porter").choices(["none", "aop"]).default("none"))
+	.option("--ignore-unknown-attribute", "ignore unknown attribute")
 	.option("-v, --verbose", "output verbosely")
 	.parse(process.argv);
 
-//
-// Check arguments and options
-//
-if (program.args.length === 0) {
+const args = program.args;
+
+if (args.length === 0) {
 	program.outputHelp();
 	process.exit(1);
-} else if (program.args.length > 1) {
-	console.log("too many files");
+} else if (args.length > 1) {
+	console.log("Too many files");
 	process.exit(1);
 }
 
-const prefixes = createPrefixFromParam((<any>program).setPrefix, (<any>program).addPrefix);
-if (prefixes.length < DEFAULT_PREFIXES.split(",").length) {
-	console.log("Error: too few prefixes");
+const opts = program.opts();
+
+C.convert({
+	projFileName:          args[0],
+	outDir:                opts.outDir,
+	addPrefix:             !!opts.addPrefix,
+	verbose:               !!opts.verbose,
+	bundleAll:             !!opts.bundleAll,
+	prefixes:              opts.setPrefix,
+	porter:                opts.porter,
+
+	asaanLongName:         !!opts.longName,
+	deleteHidden:          !!opts.deleteHidden,
+	labelAsUserData:       !!opts.labelAsUserData,
+	outputUserData:        !!opts.userData,
+	outputComboInfo:       !!opts.combinationInfo,
+	outputRelatedFileInfo: !!opts.relatedFileInfo,
+	outputLayoutSize:      !!opts.layoutSize,
+	ignoreUnknownAttribute:!!opts.ignoreUnknownAttribute,
+}).catch(err => {
+	console.log(err);
 	process.exit(1);
-}
-
-const options: C.Options = {
-	projFileName:          program.args[0],
-	outDir:                <string>((<any>program).outDir),
-	addPrefix:             !!(<any>program).addPrefix,
-	verbose:               !!(<any>program).verbose,
-	prefixes:              prefixes,
-	bundleAll:             !!(<any>program).bundleAll,
-
-	// SS.LoadFromSSAEOptionObject
-	asaanLongName:         !!(<any>program).longName,
-	deleteHidden:          !!(<any>program).deleteHidden,
-	labelAsUserData:       !!(<any>program).labelAsUserData,
-	outputUserData:        !!(<any>program).userData,
-	outputComboInfo:       !!(<any>program).combinationInfo,
-	outputRelatedFileInfo: !!(<any>program).relatedFileInfo,
-	outputLayoutSize:      !!(<any>program).layoutSize
-};
-
-C.convert(options);
-
-function createPrefixFromParam(param: any, isPrefixed: boolean): string[] {
-	if (Array.isArray(param)) {
-		return param;
-	} else if (isPrefixed === true) {
-		return DEFAULT_PREFIXES.split(",");
-	} else {
-		return ["", "", "", ""];
-	}
-}
+});

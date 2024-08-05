@@ -24,7 +24,7 @@ interface EffectParameterObject extends vfx.EmitterParameterObject {
 
 // SpriteStudioの属性名 と akashic-animationのAttrIdで定義される定数名の対応表
 // ここに載っている属性名のみ合法とする
-const ssAttr2asaAttr: any = {
+const ssAttr2asaAttr = {
 	POSX: "tx",
 	POSY: "ty",
 	ROTZ: "rz",
@@ -48,7 +48,7 @@ const ssAttr2asaAttr: any = {
 	FLPV: "flipV",
 	USER: "userData",
 	EFCT: "effect"
-};
+} as const;
 
 // パーツ種別 "null" の扱える属性は以下に限られる
 const asaAttr4nullParts: string[] = [
@@ -90,7 +90,7 @@ export class Project {
 	imageFileNames: string[] = [];
 }
 
-export function createRelatedFileSetFromSSPJ(sspj: any): RelatedFileSet {
+export function createRelatedFileSetFromSSPJ(sspj: Record<string, any>): RelatedFileSet {
 	const fileset: RelatedFileSet = new RelatedFileSet();
 	let fileNames: string[] = undefined;
 
@@ -198,6 +198,7 @@ export interface LoadFromSSAEOptionObject {
 	outputComboInfo?: boolean;
 	outputRelatedFileInfo?: boolean;
 	outputLayoutSize?: boolean;
+	ignoreUnknownAttribute?: boolean;
 }
 
 export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptionObject): void {
@@ -244,7 +245,12 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 		skinNames.push(path.basename(val, ".ssce"));
 	});
 
-	const animations: Animation[] = loadAnimationsFromSSAnimeList(ssAnimeList, skinNames, option.outputUserData);
+	const animations = loadAnimationsFromSSAnimeList(
+		ssAnimeList,
+		skinNames,
+		option.outputUserData,
+		option.ignoreUnknownAttribute
+	);
 
 	animations.forEach((animation: Animation) => {
 		deletedBoneNames.forEach((name: string) => {
@@ -403,6 +409,7 @@ export function loadFromSSEE(proj: Project, data: any): void {
 			}
 
 			if (transRotationBeh) {
+				// TODO: arz: number[] に undefined を代入しない
 				pdata.arz = undefined;
 				pdata.tvrz = undefined;
 				pdata.tvrzC = [parseFloat(transRotationBeh.RotationFactor[0])];
@@ -410,6 +417,7 @@ export function loadFromSSEE(proj: Project, data: any): void {
 			}
 
 			if (transSizeBeh) { // a, v を上書きするためここで行う
+				// TODO: asx: number[] に undefined を代入しない
 				pdata.asx = undefined;
 				pdata.vsx = undefined;
 				pdata.tsx = toNumbers(transSizeBeh.SizeX[0].$);
@@ -538,19 +546,17 @@ function exchangeAlphaBlendMode(alphaBlendType: string): AlphaBlendMode {
 	}
 }
 
-function loadKeyFramesAs<T>(attrType: string, keys: any[], parser: (val: any) => T): Curve<T> {
+function loadKeyFramesAs<T>(ssAttr: keyof typeof ssAttr2asaAttr, keys: any[], parser: (val: any) => T): Curve<T> {
 	// 正しいデータと考える。例外を投げない
 	// 返り値がundefinedであることを利用者は想定すること
 	if (keys === undefined) {
 		return undefined;
 	}
 
+	const attribute = ssAttr2asaAttr[ssAttr];
 	const curve = new Curve<T>();
 
-	curve.attribute = ssAttr2asaAttr[attrType];
-	if (! curve.attribute) {
-		throw Error("Unknown attribute: " + attrType);
-	}
+	curve.attribute = attribute;
 
 	for (let l = 0; l < keys.length; l++) {
 		const key: any = keys[l];
@@ -595,9 +601,9 @@ function loadSkin(data: any): Skin {
 	skin.imageSizeW = parseInt(imageSizes[0], 10);
 	skin.imageSizeH = parseInt(imageSizes[1], 10);
 
-	const cells = data.SpriteStudioCellMap.cells[0].cell;
+	const cells = data.SpriteStudioCellMap.cells[0].cell as any[];
 	if (cells) {
-		cells.forEach((src: any) => {
+		cells.forEach(src => {
 			const cell = new Cell();
 			cell.name = src.name[0];
 
@@ -638,7 +644,7 @@ function parseBoolean(val: any): boolean {
 
 function mirrorCurve(curve: Curve<any>): void {
 	if (curve.attribute === "rz" || curve.attribute === "ty" || curve.attribute === "pvty") {
-		curve.keyFrames.forEach((keyFrame: KeyFrame<any>) => {
+		curve.keyFrames.forEach(keyFrame => {
 			keyFrame.value *= -1;
 			if (keyFrame.ipCurve) {
 				keyFrame.ipCurve.values[1] *= -1;
@@ -724,12 +730,30 @@ function importLabelsFromSSAnimeList(ssAnimeList: any[], animations: Animation[]
 	}
 }
 
-function loadKeyFrames(attrType: string, keys: any[], skinNames: string[], outputUserData: boolean): Curve<any> {
+function loadKeyFrames(
+	_ssAttr: string,
+	keys: any[],
+	skinNames: string[],
+	outputUserData: boolean,
+	ignoreUnknownAttribute: boolean
+): Curve<any> {
+	const ssAttr = _ssAttr as keyof typeof ssAttr2asaAttr;
+	const attribute = ssAttr2asaAttr[ssAttr];
+
+	if (attribute == null) {
+		if (ignoreUnknownAttribute) {
+			console.log(`Ignore unknonwn attribute: ${ssAttr}`);
+			return undefined;
+		} else {
+			throw Error("Unknown attribute: " + ssAttr);
+		}
+	}
+
 	let curve: Curve<any> = undefined;
 
-	switch (attrType) {
+	switch (ssAttr) {
 		case "CELL":
-			curve = loadKeyFramesAs<CellValue>(attrType, keys, (val: any): CellValue => {
+			curve = loadKeyFramesAs(ssAttr, keys, val => {
 				const cellValue = new CellValue();
 				cellValue.skinName = skinNames[parseInt(val.mapId[0], 10)];
 				cellValue.cellName = val.name[0];
@@ -737,21 +761,21 @@ function loadKeyFrames(attrType: string, keys: any[], skinNames: string[], outpu
 			});
 			break;
 		case "HIDE":
-			curve = loadKeyFramesAs<boolean>(attrType, keys, (val: string): boolean => {
-				return !parseBoolean(val); // trueの時表示としたいので逆転
-			});
+			curve = loadKeyFramesAs(ssAttr, keys, val =>
+				!parseBoolean(val) // trueの時表示としたいので逆転
+			);
 			break;
 		case "IFLH":
 		case "IFLV":
 		case "FLPH":
 		case "FLPV":
-			curve = loadKeyFramesAs<boolean>(attrType, keys, parseBoolean);
+			curve = loadKeyFramesAs(ssAttr, keys, parseBoolean);
 			break;
 		case "USER":
 			if (! outputUserData) {
 				break;
 			}
-			curve = loadKeyFramesAs<any>(attrType, keys, (val: any): any => {
+			curve = loadKeyFramesAs(ssAttr, keys, val => {
 				const result: UserData = {};
 				result.num   = val.integer ? Number(val.integer[0])    : undefined;
 				result.point = val.point   ? str2numbers(val.point[0]) : undefined;
@@ -761,21 +785,26 @@ function loadKeyFrames(attrType: string, keys: any[], skinNames: string[], outpu
 			});
 			break;
 		case "EFCT":
-			curve = loadKeyFramesAs<vfx.EffectValue>(attrType, keys, (val: any): vfx.EffectValue => {
-				return {
-					emitterOp: val.independent[0] === "0" ? vfx.EmitterOperation.start : vfx.EmitterOperation.stop
-				};
-			});
+			curve = loadKeyFramesAs<vfx.EffectValue>(ssAttr, keys, val => ({
+				emitterOp: val.independent[0] === "0"
+					? vfx.EmitterOperation.start
+					: vfx.EmitterOperation.stop
+			}));
 			break;
 		default:
-			curve = loadKeyFramesAs<number>(attrType, keys, parseFloat);
+			curve = loadKeyFramesAs(ssAttr, keys, parseFloat);
 			break;
 	}
 
 	return curve;
 }
 
-function convertSSAnime(ssAnime: any, skinNames: string[], outputUserData: boolean): Animation {
+function convertSSAnime(
+	ssAnime: any,
+	skinNames: string[],
+	outputUserData: boolean,
+	ignoreUnknownAttribute: boolean
+): Animation {
 	const dstAnime = new Animation();
 	dstAnime.name = ssAnime.name[0];
 	dstAnime.fps = parseInt(ssAnime.settings[0].fps[0], 10);
@@ -794,9 +823,9 @@ function convertSSAnime(ssAnime: any, skinNames: string[], outputUserData: boole
 			for (let k = 0; k < attributes.length; k++) {
 				const attribute: any = attributes[k];
 				const keys: any[] = attribute.key;
-				const attrType: string = attribute.$.tag; // e.g. POSX, POSY, ...
+				const ssAttr = attribute.$.tag; // e.g. POSX, POSY, ...
 
-				const curve = loadKeyFrames(attrType, keys, skinNames, outputUserData);
+				const curve = loadKeyFrames(ssAttr, keys, skinNames, outputUserData, ignoreUnknownAttribute);
 				if (curve) {
 					mirrorCurve(curve);
 					curveTie.curves.push(curve); // stored
@@ -815,7 +844,12 @@ function convertSSAnime(ssAnime: any, skinNames: string[], outputUserData: boole
 	return dstAnime;
 }
 
-function loadAnimationsFromSSAnimeList(ssAnimeList: any[], skinNames: string[], outputUserData: boolean): Animation[] {
+function loadAnimationsFromSSAnimeList(
+	ssAnimeList: any[],
+	skinNames: string[],
+	outputUserData: boolean,
+	ignoreUnknownAttribute: boolean
+): Animation[] {
 	const animations: Animation[] = [];
 	for (let i = 0; i < ssAnimeList.length; i++) {
 		const ssAnime = ssAnimeList[i];
@@ -823,7 +857,7 @@ function loadAnimationsFromSSAnimeList(ssAnimeList: any[], skinNames: string[], 
 		if (ssAnime.isSetup && ssAnime.isSetup[0] === "1") {
 			continue;
 		}
-		const anime = convertSSAnime(ssAnime, skinNames, outputUserData);
+		const anime = convertSSAnime(ssAnime, skinNames, outputUserData, ignoreUnknownAttribute);
 		animations.push(anime);
 	}
 
