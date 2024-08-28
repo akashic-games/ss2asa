@@ -21,7 +21,8 @@ program
 	.option(
 		"-P, --set-prefix <[pj],[bn],[sk],[an],[ef]>",
 		"set file name prefixes",
-		list => list.split(",")
+		list => list.split(","),
+		C.DEFAULT_PREFIXES
 	)
 	.addOption(new Option("--porter <porter>", "set porter").choices(["none", "aop"]).default("none"))
 	.option("--ignore-unknown-attribute", "ignore unknown attribute")
