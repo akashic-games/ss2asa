@@ -167,17 +167,28 @@ export function convert(_options: Options): Promise<any> {
 }
 
 function completeOptions(opts: Options): Required<Options> {
+	let prefixes: string[];
+
+	if (Array.isArray(opts.prefixes)) {
+		prefixes = [];
+		for (let i = 0; i < DEFAULT_PREFIXES.length; i++) {
+			prefixes.push(opts.prefixes[i] ?? DEFAULT_PREFIXES[i]);
+		}
+	} else {
+		prefixes = opts.addPrefix
+			? DEFAULT_PREFIXES
+			: DEFAULT_PREFIXES.map(_p => "");
+	}
+
+	console.log(prefixes);
+
 	return {
 		projFileName: opts.projFileName,
 		outDir: opts.outDir,
 		addPrefix: !!opts.addPrefix,
 		verbose: !!opts.verbose,
 		bundleAll: !!opts.bundleAll,
-		prefixes: Array.isArray(opts.prefixes)
-			? opts.prefixes
-			: opts.addPrefix
-				? DEFAULT_PREFIXES
-				: DEFAULT_PREFIXES.map(_p => ""),
+		prefixes,
 		porter: opts.porter ?? "none",
 
 		// SS.LoadFromSSAEOptionObject
