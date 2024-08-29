@@ -89,11 +89,17 @@ export interface Combo {
 	skinNames: string[];
 }
 
+/**
+ * SpriteStudio のレイアウト情報のサイズ。
+ */
 interface LayoutSize {
 	width: number;
 	height: number;
 }
 
+/**
+ * プロジェクトのユーザデータ。
+ */
 export interface ProjectUserData {
 	combinationInfo?: Combo[];
 	layoutSizes?: Record<string, LayoutSize>;
