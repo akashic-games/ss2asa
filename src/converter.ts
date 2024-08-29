@@ -354,7 +354,6 @@ function writeAll(proj: SS.Project, outDir: string, prefixes: string[], outputRe
 	}
 
 	if (outputRelatedFileInfo) {
-		const userData = projectV2.userData ?? {};
 		const relatedFileInfo: RelatedFileInfo = {
 			boneSetFileNames: projectV2.boneSetFileNames,
 			skinFileNames: projectV2.skinFileNames,
@@ -362,6 +361,7 @@ function writeAll(proj: SS.Project, outDir: string, prefixes: string[], outputRe
 			effectFileNames: projectV2.effectFileNames,
 			imageFileNames: proj.imageFileNames,
 		};
+		const userData = projectV2.userData ?? {};
 		projectV2.userData = {
 			...userData,
 			relatedFileInfo
