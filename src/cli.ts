@@ -48,6 +48,7 @@ C.convert({
 	verbose:               !!opts.verbose,
 	bundleAll:             !!opts.bundleAll,
 	prefixes:              opts.setPrefix,
+	outputRelatedFileInfo: !!opts.relatedFileInfo,
 	porter:                opts.porter,
 
 	asaanLongName:         !!opts.longName,
@@ -55,7 +56,6 @@ C.convert({
 	labelAsUserData:       !!opts.labelAsUserData,
 	outputUserData:        !!opts.userData,
 	outputComboInfo:       !!opts.combinationInfo,
-	outputRelatedFileInfo: !!opts.relatedFileInfo,
 	outputLayoutSize:      !!opts.layoutSize,
 	ignoreUnknownAttribute:!!opts.ignoreUnknownAttribute,
 }).catch(err => {

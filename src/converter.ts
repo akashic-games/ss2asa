@@ -87,6 +87,11 @@ export interface Options extends SS.LoadFromSSAEOptionObject {
 	prefixes?: string[];
 
 	/**
+	 * 真の時、関連ファイル情報を出力する。
+	 */
+	outputRelatedFileInfo?: boolean;
+
+	/**
 	 * ポーターの種類。
 	 *
 	 * 省略時、"none"。
@@ -180,8 +185,6 @@ function completeOptions(opts: Options): Required<Options> {
 			: DEFAULT_PREFIXES.map(_p => "");
 	}
 
-	console.log(prefixes);
-
 	return {
 		projFileName: opts.projFileName,
 		outDir: opts.outDir,
@@ -189,6 +192,7 @@ function completeOptions(opts: Options): Required<Options> {
 		verbose: !!opts.verbose,
 		bundleAll: !!opts.bundleAll,
 		prefixes,
+		outputRelatedFileInfo: !!opts.outputRelatedFileInfo,
 		porter: opts.porter ?? "none",
 
 		// SS.LoadFromSSAEOptionObject
@@ -197,7 +201,6 @@ function completeOptions(opts: Options): Required<Options> {
 		labelAsUserData: !!opts.labelAsUserData,
 		outputUserData: !!opts.outputUserData,
 		outputComboInfo: !!opts.outputComboInfo,
-		outputRelatedFileInfo: !!opts.outputRelatedFileInfo,
 		outputLayoutSize: !!opts.outputLayoutSize,
 		ignoreUnknownAttribute: !!opts.ignoreUnknownAttribute,
 	};

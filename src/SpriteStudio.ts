@@ -51,7 +51,7 @@ const ssAttr2asaAttr = {
 } as const;
 
 // パーツ種別 "null" の扱える属性は以下に限られる
-const asaAttr4nullParts: string[] = [
+const asaAttr4nullParts = [
 	"tx",
 	"ty",
 	"rz",
@@ -60,7 +60,7 @@ const asaAttr4nullParts: string[] = [
 	"alpha",
 	"ccr",
 	"userData"
-];
+] as const;
 
 // akashic-animationの扱える補間方法
 // 次の補間方法のみ合法とする
@@ -80,14 +80,33 @@ export class RelatedFileSet {
 	sseeFileNames: string[] = [];
 }
 
+/**
+ * ボーン、アニメーション、スキンの利用可能な組み合わせ。
+ */
+export interface Combo {
+	boneName: string;
+	animationNames: string[];
+	skinNames: string[];
+}
+
+interface LayoutSize {
+	width: number;
+	height: number;
+}
+
+export interface ProjectUserData {
+	combinationInfo?: Combo[];
+	layoutSizes?: Record<string, LayoutSize>;
+}
+
 export class Project {
 	name: string;
 	skins: Skin[] = [];
 	boneSets: BoneSet[] = [];
 	animations: Animation[] = [];
 	effects: vfx.EffectParameterObject[] = [];
-	userData: any;
 	imageFileNames: string[] = [];
+	userData?: ProjectUserData;
 }
 
 export function createRelatedFileSetFromSSPJ(sspj: Record<string, any>): RelatedFileSet {
@@ -137,7 +156,8 @@ function cullCurvesByBoneType(animations: Animation[], bones: Bone[]): void {
 					return;
 				}
 				curveTie.curves = curveTie.curves.filter((curve: Curve<any>) => {
-					return asaAttr4nullParts.indexOf(curve.attribute) !== -1;
+					// attribute が string 型なのでキャストが必要になる
+					return asaAttr4nullParts.indexOf(curve.attribute as typeof asaAttr4nullParts[number]) !== -1;
 				});
 			});
 		}
@@ -191,13 +211,41 @@ function deleteHiddenBones(bones: Bone[], boneSetName: string): string[] {
 }
 
 export interface LoadFromSSAEOptionObject {
+	/**
+	 * 真の時、アニメーション名に "ボーン名_" をプレフィックスとして付与する
+	 */
 	asaanLongName?: boolean;
+
+	/**
+	 * 真の時、エディタ上で非表示のボーンと、そのアニメーションを削除する
+	 */
 	deleteHidden?: boolean;
+
+	/**
+	 * 真の時、フレームに設定されたラベルをユーザーデータキーフレームとしてアニメーションに追加する
+	 *
+	 * ルートボーンのアニメーションに追加する。
+	 */
 	labelAsUserData?: boolean;
+
+	/**
+	 * 真の時、キーフレームのユーザーデータを出力する
+	 */
 	outputUserData?: boolean;
+
+	/**
+	 * 真の時、ボーン、スキン、アニメーションの利用可能な組み合わせを出力する
+	 */
 	outputComboInfo?: boolean;
-	outputRelatedFileInfo?: boolean;
+
+	/**
+	 * 真の時、SpriteStudio のレイアウト情報のサイズを主力する。
+	 */
 	outputLayoutSize?: boolean;
+
+	/**
+	 * 真の時、Akashic Animation では利用できない属性を無視し、エラーにしない。
+	 */
 	ignoreUnknownAttribute?: boolean;
 }
 
@@ -205,13 +253,15 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 	// get bones from model and construct BoneSet
 	const model: any = data.SpriteStudioAnimePack.Model;
 	const name: string = data.SpriteStudioAnimePack.name[0];
-	let combo: any = undefined;
+	const combo: Combo = option.outputComboInfo
+		? {
+			boneName: undefined,
+			animationNames: [],
+			skinNames: []
+		}
+		: undefined;
 
-	if (option.outputComboInfo) {
-		combo = { boneName: undefined, animationNames: [], skinNames: [] };
-	}
-
-	const bones: Bone[] = loadBonesFromSSModels(model);
+	const bones = loadBonesFromSSModels(model);
 
 	if (didBoneStemFromInstance(bones)) {
 		console.log("[INFO] ignore " + name + "'s bone set and animations because it stemmed from instance animation");
@@ -221,7 +271,7 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 	const deletedBoneNames: string[] = option.deleteHidden ? deleteHiddenBones(bones, name) : [];
 
 	proj.boneSets.push(new BoneSet(name, bones));
-	if (option.outputComboInfo) {
+	if (combo) {
 		combo.boneName = name;
 	}
 
@@ -274,14 +324,10 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 
 	proj.animations = proj.animations.concat(animations);
 
-	if (option.outputComboInfo) {
-		animations.forEach((animation: Animation) => {
-			combo.animationNames.push(animation.name);
-		});
+	if (combo) {
+		animations.forEach(animation => combo.animationNames.push(animation.name));
 		combo.skinNames = skinNames;
-		if (! proj.userData) {
-			proj.userData = {};
-		}
+		proj.userData = proj.userData ?? {};
 		if (! proj.userData.combinationInfo) {
 			proj.userData.combinationInfo = [];
 		}
@@ -289,7 +335,7 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 	}
 
 	if (option.outputLayoutSize) {
-		const layoutSizes: {[key: string]: {width: number; height: number}} = {};
+		const layoutSizes: Record<string, LayoutSize> = {};
 
 		for (let i = 0; i < ssAnimeList.length; i++) {
 			const ssAnime = ssAnimeList[i];
@@ -300,10 +346,13 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 			const canvasSizes = ssAnime.settings[0].canvasSize[0].split(" ");
 			const width = canvasSizes[0];
 			const height = canvasSizes[1];
-			layoutSizes[name] = {width: width, height: height};
+			layoutSizes[name] = {
+				width,
+				height
+			};
 		}
 
-		proj.userData = (proj.userData || {});
+		proj.userData = proj.userData ?? {};
 		proj.userData.layoutSizes = layoutSizes;
 	}
 }
