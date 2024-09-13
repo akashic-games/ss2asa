@@ -10,7 +10,7 @@ import {
 	Content,
 	ProjectV2,
 	ProjectV3,
-	aop,
+	aop
 } from "@akashic-extension/akashic-animation";
 /* eslint import/order: 2 */
 import SS = require("./SpriteStudio");
@@ -235,13 +235,19 @@ function assertDeepEqual(a: any, b: any): void {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function verifyPorter(
 	proj: SS.Project,
-	schema: aop.AOPSchema,
+	schema: aop.ArrayOrientedPorterSchema,
 	boneSets: NamedData<any[]>[],
 	skins: NamedData<any[]>[],
 	animations: NamedData<any[]>[],
 	effects: NamedData<any[]>[]
 ): void {
-	const importer = new aop.AOPImporter(schema);
+	const importer = new aop.ArrayOrientedImporter();
+
+	if (!importer.validateSchema(schema)) {
+		throw new Error(`Invalid schema: ${schema}`);
+	}
+
+	importer.setSchema(schema);
 
 	const deserializedBoneSets = boneSets.map(boneSet => importer.importBoneSet(boneSet.data));
 	assertDeepEqual(proj.boneSets, deserializedBoneSets);
@@ -272,7 +278,7 @@ function writeAllPorterNone(proj: SS.Project, outDir: string, prefixes: string[]
 }
 
 function writeAllPorterAOP(proj: SS.Project, outDir: string, prefixes: string[], version: string): ProjectV2 {
-	const exporter = new aop.AOPExporter();
+	const exporter = new aop.ArrayOrientedExporter();
 
 	const compactAnimations = proj.animations.map(anim => {
 		return {
@@ -407,7 +413,7 @@ function createContentsV3PorterNone(proj: SS.Project): Content<any>[] {
 }
 
 function createContentsV3PorterAOP(proj: SS.Project): Content<any>[] {
-	const exporter = new aop.AOPExporter();
+	const exporter = new aop.ArrayOrientedExporter();
 
 	const boneSetContents = proj.boneSets.map(boneSet =>
 		new Content("bone", boneSet.name, exporter.exportBoneSet(boneSet))
@@ -422,7 +428,7 @@ function createContentsV3PorterAOP(proj: SS.Project): Content<any>[] {
 		new Content("effect", effect.name, exporter.exportEffect(effect))
 	);
 
-	const projectContent = new Content<ProjectV3>("project", proj.name, {
+	const projectContent = new Content("project", proj.name, {
 		userData: proj.userData,
 		schema: exporter.getSchema(),
 	});
