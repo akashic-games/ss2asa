@@ -468,11 +468,13 @@ function writeAllIntoProjectFile(
 	}
 
 	if (outputRelatedFileInfo) {
-		const idx = contents.findIndex(content => content.type === "project");
-		if (idx === -1) {
+		const content = contents.find(content => content.type === "project");
+
+		if (content == null) {
 			throw new Error("Project not found.");
 		}
-		const projectV3: ProjectV3 = contents[idx].data;
+
+		const projectV3 = content.data as ProjectV3;
 		const relatedFileInfo: RelatedFileInfo = {
 			boneSetFileNames: [],
 			skinFileNames: [],
@@ -480,6 +482,7 @@ function writeAllIntoProjectFile(
 			effectFileNames: [],
 			imageFileNames: proj.imageFileNames,
 		};
+
 		projectV3.userData = {
 			...projectV3.userData,
 			relatedFileInfo
