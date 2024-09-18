@@ -127,10 +127,6 @@ export function convert(_options: Options): Promise<any> {
 
 	vlog.log("option:", options);
 
-	if (options.prefixes.length < DEFAULT_PREFIXES.length) {
-		return Promise.reject(`Too few prefixes ${JSON.stringify(options.prefixes)}`);
-	}
-
 	return Promise.resolve()
 		.then(() => new Promise<void>((resolve, reject) =>
 			fs.ensureDir(options.outDir, err => err ? reject(err) : resolve())
