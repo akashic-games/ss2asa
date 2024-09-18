@@ -202,7 +202,7 @@ function completeOptions(opts: Options): Required<Options> {
 		outputUserData: !!opts.outputUserData,
 		outputComboInfo: !!opts.outputComboInfo,
 		outputLayoutSize: !!opts.outputLayoutSize,
-		ignoreUnknownAttribute: !!opts.ignoreUnknownAttribute,
+		ignoreUnknownAttributes: !!opts.ignoreUnknownAttributes,
 	};
 }
 

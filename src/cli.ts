@@ -25,7 +25,7 @@ program
 		C.DEFAULT_PREFIXES
 	)
 	.addOption(new Option("--porter <porter>", "set porter").choices(["none", "aop"]).default("none"))
-	.option("--ignore-unknown-attribute", "ignore unknown attribute")
+	.option("--ignore-unknown-attributes", "ignore unknown attributes")
 	.option("-v, --verbose", "output verbosely")
 	.parse(process.argv);
 
@@ -42,22 +42,22 @@ if (args.length === 0) {
 const opts = program.opts();
 
 C.convert({
-	projFileName:          args[0],
-	outDir:                opts.outDir,
-	addPrefix:             !!opts.addPrefix,
-	verbose:               !!opts.verbose,
-	bundleAll:             !!opts.bundleAll,
-	prefixes:              opts.setPrefix,
-	outputRelatedFileInfo: !!opts.relatedFileInfo,
-	porter:                opts.porter,
+	projFileName:           args[0],
+	outDir:                 opts.outDir,
+	addPrefix:              !!opts.addPrefix,
+	verbose:                !!opts.verbose,
+	bundleAll:              !!opts.bundleAll,
+	prefixes:               opts.setPrefix,
+	outputRelatedFileInfo:  !!opts.relatedFileInfo,
+	porter:                 opts.porter,
 
-	asaanLongName:         !!opts.longName,
-	deleteHidden:          !!opts.deleteHidden,
-	labelAsUserData:       !!opts.labelAsUserData,
-	outputUserData:        !!opts.userData,
-	outputComboInfo:       !!opts.combinationInfo,
-	outputLayoutSize:      !!opts.layoutSize,
-	ignoreUnknownAttribute:!!opts.ignoreUnknownAttribute,
+	asaanLongName:          !!opts.longName,
+	deleteHidden:           !!opts.deleteHidden,
+	labelAsUserData:        !!opts.labelAsUserData,
+	outputUserData:         !!opts.userData,
+	outputComboInfo:        !!opts.combinationInfo,
+	outputLayoutSize:       !!opts.layoutSize,
+	ignoreUnknownAttributes:!!opts.ignoreUnknownAttribute,
 }).catch(err => {
 	console.log(err);
 	process.exit(1);

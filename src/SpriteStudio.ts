@@ -252,7 +252,7 @@ export interface LoadFromSSAEOptionObject {
 	/**
 	 * 真の時、Akashic Animation では利用できない属性を無視し、エラーにしない。
 	 */
-	ignoreUnknownAttribute?: boolean;
+	ignoreUnknownAttributes?: boolean;
 }
 
 export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptionObject): void {
@@ -305,7 +305,7 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 		ssAnimeList,
 		skinNames,
 		option.outputUserData,
-		option.ignoreUnknownAttribute
+		option.ignoreUnknownAttributes
 	);
 
 	animations.forEach((animation: Animation) => {
@@ -790,17 +790,17 @@ function loadKeyFrames(
 	keys: any[],
 	skinNames: string[],
 	outputUserData: boolean,
-	ignoreUnknownAttribute: boolean
+	ignoreUnknownAttributes: boolean
 ): Curve<any> {
 	const ssAttr = _ssAttr as keyof typeof ssAttr2asaAttr;
 	const attribute = ssAttr2asaAttr[ssAttr];
 
 	if (attribute == null) {
-		if (ignoreUnknownAttribute) {
+		if (ignoreUnknownAttributes) {
 			console.log(`Ignore unknonwn attribute: ${ssAttr}`);
 			return undefined;
 		} else {
-			throw Error("Unknown attribute: " + ssAttr);
+			throw Error(`Unknown attribute: ${ssAttr}`);
 		}
 	}
 
@@ -858,7 +858,7 @@ function convertSSAnime(
 	ssAnime: any,
 	skinNames: string[],
 	outputUserData: boolean,
-	ignoreUnknownAttribute: boolean
+	ignoreUnknownAttributes: boolean
 ): Animation {
 	const dstAnime = new Animation();
 	dstAnime.name = ssAnime.name[0];
@@ -880,7 +880,7 @@ function convertSSAnime(
 				const keys: any[] = attribute.key;
 				const ssAttr = attribute.$.tag; // e.g. POSX, POSY, ...
 
-				const curve = loadKeyFrames(ssAttr, keys, skinNames, outputUserData, ignoreUnknownAttribute);
+				const curve = loadKeyFrames(ssAttr, keys, skinNames, outputUserData, ignoreUnknownAttributes);
 				if (curve) {
 					mirrorCurve(curve);
 					curveTie.curves.push(curve); // stored
@@ -903,7 +903,7 @@ function loadAnimationsFromSSAnimeList(
 	ssAnimeList: any[],
 	skinNames: string[],
 	outputUserData: boolean,
-	ignoreUnknownAttribute: boolean
+	ignoreUnknownAttributes: boolean
 ): Animation[] {
 	const animations: Animation[] = [];
 	for (let i = 0; i < ssAnimeList.length; i++) {
@@ -912,7 +912,7 @@ function loadAnimationsFromSSAnimeList(
 		if (ssAnime.isSetup && ssAnime.isSetup[0] === "1") {
 			continue;
 		}
-		const anime = convertSSAnime(ssAnime, skinNames, outputUserData, ignoreUnknownAttribute);
+		const anime = convertSSAnime(ssAnime, skinNames, outputUserData, ignoreUnknownAttributes);
 		animations.push(anime);
 	}
 
