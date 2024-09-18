@@ -160,9 +160,9 @@ export function convert(_options: Options): Promise<any> {
 			}
 
 			if (options.bundleAll) {
-				writeAllIntoProjectFile(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo, options.porter);
+				writeAsProjectV3(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo, options.porter);
 			} else {
-				writeAll(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo, options.porter);
+				writeAsProjectV2(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo, options.porter);
 			}
 		});
 }
@@ -258,7 +258,7 @@ function verifyPorter(
 	assertDeepEqual(proj.effects, deserializedEffects);
 }
 
-function writeAllPorterNone(proj: SS.Project, outDir: string, prefixes: string[], version: string): ProjectV2 {
+function writeRelatedFilesAsV2PorterNone(proj: SS.Project, outDir: string, prefixes: string[], version: string): ProjectV2 {
 	const boneSetFileNames = writeNamedObjects(proj.boneSets, ".asabn", outDir, version, prefixes[Prefix.Bone]);
 	const skinFileNames = writeNamedObjects(proj.skins, ".asask", outDir, version, prefixes[Prefix.Skin]);
 	const animationFileNames = writeNamedObjects(proj.animations, ".asaan", outDir, version, prefixes[Prefix.Anim]);
@@ -273,7 +273,7 @@ function writeAllPorterNone(proj: SS.Project, outDir: string, prefixes: string[]
 	};
 }
 
-function writeAllPorterAOP(proj: SS.Project, outDir: string, prefixes: string[], version: string): ProjectV2 {
+function writeRelatedFilesAsV2PorterAOP(proj: SS.Project, outDir: string, prefixes: string[], version: string): ProjectV2 {
 	const exporter = new aop.ArrayOrientedExporter();
 
 	const compactAnimations = proj.animations.map(anim => {
@@ -342,13 +342,13 @@ function writeAllPorterAOP(proj: SS.Project, outDir: string, prefixes: string[],
  * @param prefixes
  * @param outputRelatedFileInfo
  */
-function writeAll(proj: SS.Project, outDir: string, prefixes: string[], outputRelatedFileInfo: boolean, porter: PorterType): void {
+function writeAsProjectV2(proj: SS.Project, outDir: string, prefixes: string[], outputRelatedFileInfo: boolean, porter: PorterType): void {
 	const version = FILEFORMAT_VERSION_V2;
 
 	const projectV2 = porter === "none"
-		? writeAllPorterNone(proj, outDir, prefixes, version)
+		? writeRelatedFilesAsV2PorterNone(proj, outDir, prefixes, version)
 		: porter === "aop"
-			? writeAllPorterAOP(proj, outDir, prefixes, version)
+			? writeRelatedFilesAsV2PorterAOP(proj, outDir, prefixes, version)
 			: null;
 
 	if (projectV2 == null) {
@@ -379,7 +379,7 @@ function writeAll(proj: SS.Project, outDir: string, prefixes: string[], outputRe
 	vlog.log("write " + pjFname);
 }
 
-function createContentsV3PorterNone(proj: SS.Project): Content<any>[] {
+function createContentsPorterNone(proj: SS.Project): Content<any>[] {
 	const boneSetContents = proj.boneSets.map(boneSet =>
 		new Content("bone", boneSet.name, boneSet)
 	);
@@ -408,7 +408,7 @@ function createContentsV3PorterNone(proj: SS.Project): Content<any>[] {
 	return contents;
 }
 
-function createContentsV3PorterAOP(proj: SS.Project): Content<any>[] {
+function createContentsPorterAOP(proj: SS.Project): Content<any>[] {
 	const exporter = new aop.ArrayOrientedExporter();
 
 	const boneSetContents = proj.boneSets.map(boneSet =>
@@ -441,14 +441,14 @@ function createContentsV3PorterAOP(proj: SS.Project): Content<any>[] {
 }
 
 /**
- * プロジェクトファイルおよびその他関連ファイルをV3形式で出力する。
+ * プロジェクトファイルをV3形式で出力する。
  *
- * @param proj
- * @param outDir
- * @param prefixes
- * @param outputRelatedFileInfo
+ * @param proj SpriteStudio プロジェクト
+ * @param outDir 出力ディレクトリ
+ * @param prefixes ファイル名プレフィックス
+ * @param outputRelatedFileInfo 真の時、関連ファイル情報を出力する
  */
-function writeAllIntoProjectFile(
+function writeAsProjectV3(
 	proj: SS.Project,
 	outDir: string,
 	prefixes: string[],
@@ -458,9 +458,9 @@ function writeAllIntoProjectFile(
 	const version = FILEFORMAT_VERSION;
 
 	const contents = porter === "none"
-		? createContentsV3PorterNone(proj)
+		? createContentsPorterNone(proj)
 		: porter === "aop"
-			? createContentsV3PorterAOP(proj)
+			? createContentsPorterAOP(proj)
 			: null;
 
 	if (contents == null) {
