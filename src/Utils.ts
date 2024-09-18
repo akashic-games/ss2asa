@@ -18,6 +18,7 @@ export function loadXMLFileAsyncPromise(fname: string): Promise<Record<string, a
 			parser.parseString(data, (err, result) => {
 				if (err) {
 					reject(err);
+					return;
 				}
 				resolve(result);
 			});
