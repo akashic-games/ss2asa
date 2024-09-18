@@ -480,9 +480,8 @@ function writeAllIntoProjectFile(
 			effectFileNames: [],
 			imageFileNames: proj.imageFileNames,
 		};
-		const userData = projectV3.userData ?? {};
 		projectV3.userData = {
-			...userData,
+			...projectV3.userData,
 			relatedFileInfo
 		};
 	}
