@@ -171,13 +171,13 @@ function completeOptions(opts: Options): Required<Options> {
 	let prefixes: string[];
 
 	if (Array.isArray(opts.prefixes)) {
-		prefixes = [];
-		for (let i = 0; i < DEFAULT_PREFIXES.length; i++) {
-			prefixes.push(opts.prefixes[i] ?? DEFAULT_PREFIXES[i]);
+		prefixes = [...opts.prefixes];
+		for (let i = prefixes.length; i < DEFAULT_PREFIXES.length; i++) {
+			prefixes.push(DEFAULT_PREFIXES[i]);
 		}
 	} else {
 		prefixes = opts.addPrefix
-			? DEFAULT_PREFIXES
+			? [...DEFAULT_PREFIXES]
 			: DEFAULT_PREFIXES.map(_p => "");
 	}
 
