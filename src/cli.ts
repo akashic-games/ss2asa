@@ -26,6 +26,7 @@ program
 	)
 	.addOption(new Option("--porter <porter>", "set porter").choices(["none", "aop"]).default("none"))
 	.option("--ignore-unknown-attributes", "ignore unknown attributes")
+	.option("--debug-verify-porter", "verify porter intengrity by importing data")
 	.option("-v, --verbose", "output verbosely")
 	.parse(process.argv);
 
@@ -50,6 +51,7 @@ C.convert({
 	prefixes:               opts.setPrefix,
 	outputRelatedFileInfo:  !!opts.relatedFileInfo,
 	porter:                 opts.porter,
+	debugVerifyPorter:      !!opts.debugVerifyPorter,
 
 	asaanLongName:          !!opts.longName,
 	deleteHidden:           !!opts.deleteHidden,
@@ -57,7 +59,7 @@ C.convert({
 	outputUserData:         !!opts.userData,
 	outputComboInfo:        !!opts.combinationInfo,
 	outputLayoutSize:       !!opts.layoutSize,
-	ignoreUnknownAttributes:!!opts.ignoreUnknownAttribute,
+	ignoreUnknownAttributes:!!opts.ignoreUnknownAttributes,
 }).catch(err => {
 	console.log(err);
 	process.exit(1);

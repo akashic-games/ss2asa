@@ -28,14 +28,6 @@ interface RelatedFileInfo {
 }
 
 /**
- * 名前付きデータ。
- */
-interface NamedData<T> {
-	name: string;
-	data: T;
-}
-
-/**
  * コンバータで利用できるポーターの種類。
  *
  * - none: ポーターを利用しない
@@ -97,6 +89,13 @@ export interface Options extends SS.LoadFromSSAEOptionObject {
 	 * 省略時、"none"。
 	 */
 	porter?: PorterType;
+
+	/**
+	 * 真の時、export したデータを import し、同じデータが得られることを検証する。
+	 *
+	 * 省略時、偽。
+	 */
+	debugVerifyPorter?: boolean;
 }
 
 export const DEFAULT_PREFIXES = ["pj_", "bn_", "sk_", "an_", "ef_"];
@@ -160,9 +159,23 @@ export function convert(_options: Options): Promise<any> {
 			}
 
 			if (options.bundleAll) {
-				writeAsProjectV3(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo, options.porter);
+				writeAsProjectV3(
+					proj,
+					options.outDir,
+					options.prefixes,
+					options.outputRelatedFileInfo,
+					options.porter,
+					options.debugVerifyPorter
+				);
 			} else {
-				writeAsProjectV2(proj, options.outDir, options.prefixes, options.outputRelatedFileInfo, options.porter);
+				writeAsProjectV2(
+					proj,
+					options.outDir,
+					options.prefixes,
+					options.outputRelatedFileInfo,
+					options.porter,
+					options.debugVerifyPorter
+				);
 			}
 		});
 }
@@ -190,6 +203,7 @@ function completeOptions(opts: Options): Required<Options> {
 		prefixes,
 		outputRelatedFileInfo: !!opts.outputRelatedFileInfo,
 		porter: opts.porter ?? "none",
+		debugVerifyPorter: !!opts.debugVerifyPorter,
 
 		// SS.LoadFromSSAEOptionObject
 		asaanLongName: !!opts.asaanLongName,
@@ -228,15 +242,21 @@ function assertDeepEqual(a: any, b: any): void {
 	}
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function verifyPorter(
+/**
+ * ArrayOrientedPorter で export したデータを import し、元のデータと一致することを検証する。
+ *
+ * 一致しなかった時、例外を投げる。
+ */
+function verifyArrayOrientedPorter(
 	proj: SS.Project,
 	schema: aop.ArrayOrientedPorterSchema,
-	boneSets: NamedData<any[]>[],
-	skins: NamedData<any[]>[],
-	animations: NamedData<any[]>[],
-	effects: NamedData<any[]>[]
+	boneSets: any[][],
+	skins: any[][],
+	animations: any[][],
+	effects: any[][]
 ): void {
+	console.log(`Verify ${proj.name}`);
+
 	const importer = new aop.ArrayOrientedImporter();
 
 	if (!importer.validateSchema(schema)) {
@@ -245,17 +265,17 @@ function verifyPorter(
 
 	importer.setSchema(schema);
 
-	const deserializedBoneSets = boneSets.map(boneSet => importer.importBoneSet(boneSet.data));
-	assertDeepEqual(proj.boneSets, deserializedBoneSets);
+	const importedBoneSets = boneSets.map(boneSet => importer.importBoneSet(boneSet));
+	assertDeepEqual(proj.boneSets, importedBoneSets);
 
-	const deserializedSkins = skins.map(skin => importer.importSkin(skin.data));
-	assertDeepEqual(proj.skins, deserializedSkins);
+	const importedSkins = skins.map(skin => importer.importSkin(skin));
+	assertDeepEqual(proj.skins, importedSkins);
 
-	const deserializedAnimations = animations.map(animation => importer.importAnimation(animation.data));
-	assertDeepEqual(proj.animations, deserializedAnimations);
+	const importedAnimations = animations.map(animation => importer.importAnimation(animation));
+	assertDeepEqual(proj.animations, importedAnimations);
 
-	const deserializedEffects = effects.map(effect => importer.importEffect(effect.data));
-	assertDeepEqual(proj.effects, deserializedEffects);
+	const importedEffects = effects.map(effect => importer.importEffect(effect));
+	assertDeepEqual(proj.effects, importedEffects);
 }
 
 function writeRelatedFilesAsV2PorterNone(proj: SS.Project, outDir: string, prefixes: string[], version: string): ProjectV2 {
@@ -273,52 +293,67 @@ function writeRelatedFilesAsV2PorterNone(proj: SS.Project, outDir: string, prefi
 	};
 }
 
-function writeRelatedFilesAsV2PorterAOP(proj: SS.Project, outDir: string, prefixes: string[], version: string): ProjectV2 {
+function writeRelatedFilesAsV2PorterAOP(
+	proj: SS.Project,
+	outDir: string,
+	prefixes: string[],
+	version: string,
+	debugVerifyPorter: boolean
+): ProjectV2 {
 	const exporter = new aop.ArrayOrientedExporter();
 
-	const compactAnimations = proj.animations.map(anim => {
+	const exportednimations = proj.animations.map(anim => {
 		return {
 			name: anim.name,
 			data: exporter.exportAnimation(anim)
 		};
 	});
 
-	const compactBoneSets = proj.boneSets.map(boneSet => {
+	const exportedBoneSets = proj.boneSets.map(boneSet => {
 		return {
 			name: boneSet.name,
 			data: exporter.exportBoneSet(boneSet)
 		};
 	});
 
-	const compactSkins = proj.skins.map(skin => {
+	const exportedSkins = proj.skins.map(skin => {
 		return {
 			name: skin.name,
 			data: exporter.exportSkin(skin)
 		};
 	});
 
-	const compactEffects = proj.effects.map(effect => {
+	const exportedEffects = proj.effects.map(effect => {
 		return {
 			name: effect.name,
 			data: exporter.exportEffect(effect)
 		};
 	});
 
-	// verifyPorter(proj, exporter.getSchema(), compactBoneSets, compactSkins, compactAnimations, compactEffects);
+	if (debugVerifyPorter) {
+		verifyArrayOrientedPorter(
+			proj,
+			exporter.getSchema(),
+			exportedBoneSets.map(boneSet => boneSet.data),
+			exportedSkins.map(skin => skin.data),
+			exportednimations.map(anim => anim.data),
+			exportedEffects.map(effect => effect.data)
+		);
+	}
 
-	const boneSetFileNames = compactBoneSets.map(boneSet =>
+	const boneSetFileNames = exportedBoneSets.map(boneSet =>
 		writeObject(boneSet.data, boneSet.name, ".asabn", outDir, version, prefixes[Prefix.Bone])
 	);
 
-	const skinFileNames = compactSkins.map(skin =>
+	const skinFileNames = exportedSkins.map(skin =>
 		writeObject(skin.data, skin.name, ".asask", outDir, version, prefixes[Prefix.Skin])
 	);
 
-	const animationFileNames = compactAnimations.map(anim =>
+	const animationFileNames = exportednimations.map(anim =>
 		writeObject(anim.data, anim.name, ".asaan", outDir, version, prefixes[Prefix.Anim])
 	);
 
-	const effectFileNames = compactEffects.map(effect =>
+	const effectFileNames = exportedEffects.map(effect =>
 		writeObject(effect.data, effect.name, ".asaef", outDir, version, prefixes[Prefix.Effect])
 	);
 
@@ -337,18 +372,27 @@ function writeRelatedFilesAsV2PorterAOP(proj: SS.Project, outDir: string, prefix
 /**
  * プロジェクトファイルおよびその他関連ファイルをV2形式で出力する。
  *
- * @param proj
- * @param outDir
- * @param prefixes
- * @param outputRelatedFileInfo
+ * @param proj SpriteStudio プロジェクト
+ * @param outDir 出力ディレクトリ
+ * @param prefixes ファイル名プレフィックス
+ * @param outputRelatedFileInfo 真の時、関連ファイル情報を出力する
+ * @param porter ポーターの種類
+ * @param debugVerifyPorter 真の時、ポーターの整合性を検証する
  */
-function writeAsProjectV2(proj: SS.Project, outDir: string, prefixes: string[], outputRelatedFileInfo: boolean, porter: PorterType): void {
+function writeAsProjectV2(
+	proj: SS.Project,
+	outDir: string,
+	prefixes: string[],
+	outputRelatedFileInfo: boolean,
+	porter: PorterType,
+	debugVerifyPorter: boolean
+): void {
 	const version = FILEFORMAT_VERSION_V2;
 
 	const projectV2 = porter === "none"
 		? writeRelatedFilesAsV2PorterNone(proj, outDir, prefixes, version)
 		: porter === "aop"
-			? writeRelatedFilesAsV2PorterAOP(proj, outDir, prefixes, version)
+			? writeRelatedFilesAsV2PorterAOP(proj, outDir, prefixes, version, debugVerifyPorter)
 			: null;
 
 	if (projectV2 == null) {
@@ -408,7 +452,7 @@ function createContentsPorterNone(proj: SS.Project): Content<any>[] {
 	return contents;
 }
 
-function createContentsPorterAOP(proj: SS.Project): Content<any>[] {
+function createContentsPorterAOP(proj: SS.Project, debugVerifyPorter: boolean): Content<any>[] {
 	const exporter = new aop.ArrayOrientedExporter();
 
 	const boneSetContents = proj.boneSets.map(boneSet =>
@@ -423,6 +467,17 @@ function createContentsPorterAOP(proj: SS.Project): Content<any>[] {
 	const effectContents = proj.effects.map(effect =>
 		new Content("effect", effect.name, exporter.exportEffect(effect))
 	);
+
+	if (debugVerifyPorter) {
+		verifyArrayOrientedPorter(
+			proj,
+			exporter.getSchema(),
+			boneSetContents.map(content => content.data),
+			skinContents.map(content => content.data),
+			animationContents.map(content => content.data),
+			effectContents.map(content => content.data)
+		);
+	}
 
 	const projectContent = new Content("project", proj.name, {
 		userData: proj.userData,
@@ -447,20 +502,23 @@ function createContentsPorterAOP(proj: SS.Project): Content<any>[] {
  * @param outDir 出力ディレクトリ
  * @param prefixes ファイル名プレフィックス
  * @param outputRelatedFileInfo 真の時、関連ファイル情報を出力する
+ * @param porter ポーターの種類
+ * @param debugVerifyPorter 真の時、ポーターの整合性を検証する
  */
 function writeAsProjectV3(
 	proj: SS.Project,
 	outDir: string,
 	prefixes: string[],
 	outputRelatedFileInfo: boolean,
-	porter: PorterType
+	porter: PorterType,
+	debugVerifyPorter: boolean
 ): void {
 	const version = FILEFORMAT_VERSION;
 
 	const contents = porter === "none"
 		? createContentsPorterNone(proj)
 		: porter === "aop"
-			? createContentsPorterAOP(proj)
+			? createContentsPorterAOP(proj, debugVerifyPorter)
 			: null;
 
 	if (contents == null) {
