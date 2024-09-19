@@ -217,13 +217,17 @@ asapjファイルと関連するファイルの一覧をasapjファイルのユ�
 
 ポーターを指定します。ポーターは各種データをシリアライズする前に加工・変換するものです。
 
-現在は `aop` を指定できます。aopを指定すると、ファイルサイズが削減されます。
+現在は `aop` (Array Oriented Porter) を指定できます。`aop` を指定すると、ファイルサイズが削減されます。
 
 aop を適用したファイルを読み込むことができる Akashic Animation は 4.1.0 以降になります。
 
-## --ignore-unknown-attribute
+### --ignore-unknown-attribute
 
 Akashic Animation で利用できない属性を無視します。
+
+### --debug-verify-porter
+
+ポーターを検証するデバッグ機能です。通常使用することはありません。
 
 ## 使い方 (Node.js API)
 
