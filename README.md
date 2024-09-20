@@ -219,7 +219,7 @@ asapjファイルと関連するファイルの一覧をasapjファイルのユ�
 
 現在は `aop` (Array Oriented Porter) を指定できます。`aop` を指定すると、ファイルサイズが削減されます。
 
-aop を適用したファイルを読み込むことができる Akashic Animation は 4.1.0 以降になります。
+aop を適用したファイルを読み込むことができる Akashic Animation は 4.2.0 以降になります。
 
 ### --ignore-unknown-attribute
 
