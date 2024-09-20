@@ -48,7 +48,7 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "@akashic-extension/akashic-animation": "file:../akashic-animation/akashic-extension-akashic-animation-4.1.0.tgz",
+    "@akashic-extension/akashic-animation": "^4.2.0",
     "@akashic/akashic-engine": "^3.18.1",
     "commander": "^12.1.0",
     "fs-extra": "^11.2.0",
