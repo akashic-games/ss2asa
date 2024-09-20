@@ -5,10 +5,11 @@
     "noImplicitAny": true,
     "module": "commonjs",
     "outDir": "./lib",
+    "allowUmdGlobalAccess": true,
     "declaration": true
   },
   "files": [
-    "./node_modules/@akashic/akashic-engine/lib/main.d.ts",
+    "./node_modules/@akashic/akashic-engine/index.runtime.d.ts",
     "./node_modules/@akashic-extension/akashic-animation/lib/index.d.ts",
     "./src/cli.ts",
     "./src/index.ts"

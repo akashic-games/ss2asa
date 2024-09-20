@@ -24,7 +24,7 @@ interface EffectParameterObject extends vfx.EmitterParameterObject {
 
 // SpriteStudioの属性名 と akashic-animationのAttrIdで定義される定数名の対応表
 // ここに載っている属性名のみ合法とする
-const ssAttr2asaAttr: any = {
+const ssAttr2asaAttr = {
 	POSX: "tx",
 	POSY: "ty",
 	ROTZ: "rz",
@@ -48,10 +48,10 @@ const ssAttr2asaAttr: any = {
 	FLPV: "flipV",
 	USER: "userData",
 	EFCT: "effect"
-};
+} as const;
 
 // パーツ種別 "null" の扱える属性は以下に限られる
-const asaAttr4nullParts: string[] = [
+const asaAttr4nullParts = [
 	"tx",
 	"ty",
 	"rz",
@@ -60,7 +60,7 @@ const asaAttr4nullParts: string[] = [
 	"alpha",
 	"ccr",
 	"userData"
-];
+] as const;
 
 // akashic-animationの扱える補間方法
 // 次の補間方法のみ合法とする
@@ -80,17 +80,42 @@ export class RelatedFileSet {
 	sseeFileNames: string[] = [];
 }
 
+/**
+ * ボーン、アニメーション、スキンの利用可能な組み合わせ。
+ */
+export interface Combo {
+	boneName: string;
+	animationNames: string[];
+	skinNames: string[];
+}
+
+/**
+ * SpriteStudio のレイアウト情報のサイズ。
+ */
+interface LayoutSize {
+	width: number;
+	height: number;
+}
+
+/**
+ * プロジェクトのユーザデータ。
+ */
+export interface ProjectUserData {
+	combinationInfo?: Combo[];
+	layoutSizes?: Record<string, LayoutSize>;
+}
+
 export class Project {
 	name: string;
 	skins: Skin[] = [];
 	boneSets: BoneSet[] = [];
 	animations: Animation[] = [];
 	effects: vfx.EffectParameterObject[] = [];
-	userData: any;
 	imageFileNames: string[] = [];
+	userData?: ProjectUserData;
 }
 
-export function createRelatedFileSetFromSSPJ(sspj: any): RelatedFileSet {
+export function createRelatedFileSetFromSSPJ(sspj: Record<string, any>): RelatedFileSet {
 	const fileset: RelatedFileSet = new RelatedFileSet();
 	let fileNames: string[] = undefined;
 
@@ -137,7 +162,8 @@ function cullCurvesByBoneType(animations: Animation[], bones: Bone[]): void {
 					return;
 				}
 				curveTie.curves = curveTie.curves.filter((curve: Curve<any>) => {
-					return asaAttr4nullParts.indexOf(curve.attribute) !== -1;
+					// attribute が string 型なのでキャストが必要になる
+					return asaAttr4nullParts.indexOf(curve.attribute as typeof asaAttr4nullParts[number]) !== -1;
 				});
 			});
 		}
@@ -191,26 +217,57 @@ function deleteHiddenBones(bones: Bone[], boneSetName: string): string[] {
 }
 
 export interface LoadFromSSAEOptionObject {
+	/**
+	 * 真の時、アニメーション名に "ボーン名_" をプレフィックスとして付与する
+	 */
 	asaanLongName?: boolean;
+
+	/**
+	 * 真の時、エディタ上で非表示のボーンと、そのアニメーションを削除する
+	 */
 	deleteHidden?: boolean;
+
+	/**
+	 * 真の時、フレームに設定されたラベルをユーザーデータキーフレームとしてアニメーションに追加する
+	 *
+	 * ルートボーンのアニメーションに追加する。
+	 */
 	labelAsUserData?: boolean;
+
+	/**
+	 * 真の時、キーフレームのユーザーデータを出力する
+	 */
 	outputUserData?: boolean;
+
+	/**
+	 * 真の時、ボーン、スキン、アニメーションの利用可能な組み合わせを出力する
+	 */
 	outputComboInfo?: boolean;
-	outputRelatedFileInfo?: boolean;
+
+	/**
+	 * 真の時、SpriteStudio のレイアウト情報のサイズを主力する。
+	 */
 	outputLayoutSize?: boolean;
+
+	/**
+	 * 真の時、Akashic Animation では利用できない属性を無視し、エラーにしない。
+	 */
+	ignoreUnknownAttributes?: boolean;
 }
 
 export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptionObject): void {
 	// get bones from model and construct BoneSet
 	const model: any = data.SpriteStudioAnimePack.Model;
 	const name: string = data.SpriteStudioAnimePack.name[0];
-	let combo: any = undefined;
+	const combo: Combo = option.outputComboInfo
+		? {
+			boneName: undefined,
+			animationNames: [],
+			skinNames: []
+		}
+		: undefined;
 
-	if (option.outputComboInfo) {
-		combo = { boneName: undefined, animationNames: [], skinNames: [] };
-	}
-
-	const bones: Bone[] = loadBonesFromSSModels(model);
+	const bones = loadBonesFromSSModels(model);
 
 	if (didBoneStemFromInstance(bones)) {
 		console.log("[INFO] ignore " + name + "'s bone set and animations because it stemmed from instance animation");
@@ -220,7 +277,7 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 	const deletedBoneNames: string[] = option.deleteHidden ? deleteHiddenBones(bones, name) : [];
 
 	proj.boneSets.push(new BoneSet(name, bones));
-	if (option.outputComboInfo) {
+	if (combo) {
 		combo.boneName = name;
 	}
 
@@ -244,7 +301,12 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 		skinNames.push(path.basename(val, ".ssce"));
 	});
 
-	const animations: Animation[] = loadAnimationsFromSSAnimeList(ssAnimeList, skinNames, option.outputUserData);
+	const animations = loadAnimationsFromSSAnimeList(
+		ssAnimeList,
+		skinNames,
+		option.outputUserData,
+		option.ignoreUnknownAttributes
+	);
 
 	animations.forEach((animation: Animation) => {
 		deletedBoneNames.forEach((name: string) => {
@@ -268,14 +330,10 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 
 	proj.animations = proj.animations.concat(animations);
 
-	if (option.outputComboInfo) {
-		animations.forEach((animation: Animation) => {
-			combo.animationNames.push(animation.name);
-		});
+	if (combo) {
+		animations.forEach(animation => combo.animationNames.push(animation.name));
 		combo.skinNames = skinNames;
-		if (! proj.userData) {
-			proj.userData = {};
-		}
+		proj.userData = proj.userData ?? {};
 		if (! proj.userData.combinationInfo) {
 			proj.userData.combinationInfo = [];
 		}
@@ -283,7 +341,7 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 	}
 
 	if (option.outputLayoutSize) {
-		const layoutSizes: {[key: string]: {width: number; height: number}} = {};
+		const layoutSizes: Record<string, LayoutSize> = {};
 
 		for (let i = 0; i < ssAnimeList.length; i++) {
 			const ssAnime = ssAnimeList[i];
@@ -294,10 +352,13 @@ export function loadFromSSAE(proj: Project, data: any, option: LoadFromSSAEOptio
 			const canvasSizes = ssAnime.settings[0].canvasSize[0].split(" ");
 			const width = canvasSizes[0];
 			const height = canvasSizes[1];
-			layoutSizes[name] = {width: width, height: height};
+			layoutSizes[name] = {
+				width,
+				height
+			};
 		}
 
-		proj.userData = (proj.userData || {});
+		proj.userData = proj.userData ?? {};
 		proj.userData.layoutSizes = layoutSizes;
 	}
 }
@@ -403,6 +464,7 @@ export function loadFromSSEE(proj: Project, data: any): void {
 			}
 
 			if (transRotationBeh) {
+				// TODO: arz: number[] に undefined を代入しない
 				pdata.arz = undefined;
 				pdata.tvrz = undefined;
 				pdata.tvrzC = [parseFloat(transRotationBeh.RotationFactor[0])];
@@ -410,6 +472,7 @@ export function loadFromSSEE(proj: Project, data: any): void {
 			}
 
 			if (transSizeBeh) { // a, v を上書きするためここで行う
+				// TODO: asx: number[] に undefined を代入しない
 				pdata.asx = undefined;
 				pdata.vsx = undefined;
 				pdata.tsx = toNumbers(transSizeBeh.SizeX[0].$);
@@ -538,19 +601,17 @@ function exchangeAlphaBlendMode(alphaBlendType: string): AlphaBlendMode {
 	}
 }
 
-function loadKeyFramesAs<T>(attrType: string, keys: any[], parser: (val: any) => T): Curve<T> {
+function loadKeyFramesAs<T>(ssAttr: keyof typeof ssAttr2asaAttr, keys: any[], parser: (val: any) => T): Curve<T> {
 	// 正しいデータと考える。例外を投げない
 	// 返り値がundefinedであることを利用者は想定すること
 	if (keys === undefined) {
 		return undefined;
 	}
 
+	const attribute = ssAttr2asaAttr[ssAttr];
 	const curve = new Curve<T>();
 
-	curve.attribute = ssAttr2asaAttr[attrType];
-	if (! curve.attribute) {
-		throw Error("Unknown attribute: " + attrType);
-	}
+	curve.attribute = attribute;
 
 	for (let l = 0; l < keys.length; l++) {
 		const key: any = keys[l];
@@ -595,9 +656,9 @@ function loadSkin(data: any): Skin {
 	skin.imageSizeW = parseInt(imageSizes[0], 10);
 	skin.imageSizeH = parseInt(imageSizes[1], 10);
 
-	const cells = data.SpriteStudioCellMap.cells[0].cell;
+	const cells = data.SpriteStudioCellMap.cells[0].cell as any[];
 	if (cells) {
-		cells.forEach((src: any) => {
+		cells.forEach(src => {
 			const cell = new Cell();
 			cell.name = src.name[0];
 
@@ -638,7 +699,7 @@ function parseBoolean(val: any): boolean {
 
 function mirrorCurve(curve: Curve<any>): void {
 	if (curve.attribute === "rz" || curve.attribute === "ty" || curve.attribute === "pvty") {
-		curve.keyFrames.forEach((keyFrame: KeyFrame<any>) => {
+		curve.keyFrames.forEach(keyFrame => {
 			keyFrame.value *= -1;
 			if (keyFrame.ipCurve) {
 				keyFrame.ipCurve.values[1] *= -1;
@@ -724,12 +785,30 @@ function importLabelsFromSSAnimeList(ssAnimeList: any[], animations: Animation[]
 	}
 }
 
-function loadKeyFrames(attrType: string, keys: any[], skinNames: string[], outputUserData: boolean): Curve<any> {
+function loadKeyFrames(
+	_ssAttr: string,
+	keys: any[],
+	skinNames: string[],
+	outputUserData: boolean,
+	ignoreUnknownAttributes: boolean
+): Curve<any> {
+	const ssAttr = _ssAttr as keyof typeof ssAttr2asaAttr;
+	const attribute = ssAttr2asaAttr[ssAttr];
+
+	if (attribute == null) {
+		if (ignoreUnknownAttributes) {
+			console.log(`Ignore unknonwn attribute: ${ssAttr}`);
+			return undefined;
+		} else {
+			throw Error(`Unknown attribute: ${ssAttr}`);
+		}
+	}
+
 	let curve: Curve<any> = undefined;
 
-	switch (attrType) {
+	switch (ssAttr) {
 		case "CELL":
-			curve = loadKeyFramesAs<CellValue>(attrType, keys, (val: any): CellValue => {
+			curve = loadKeyFramesAs(ssAttr, keys, val => {
 				const cellValue = new CellValue();
 				cellValue.skinName = skinNames[parseInt(val.mapId[0], 10)];
 				cellValue.cellName = val.name[0];
@@ -737,21 +816,21 @@ function loadKeyFrames(attrType: string, keys: any[], skinNames: string[], outpu
 			});
 			break;
 		case "HIDE":
-			curve = loadKeyFramesAs<boolean>(attrType, keys, (val: string): boolean => {
-				return !parseBoolean(val); // trueの時表示としたいので逆転
-			});
+			curve = loadKeyFramesAs(ssAttr, keys, val =>
+				!parseBoolean(val) // trueの時表示としたいので逆転
+			);
 			break;
 		case "IFLH":
 		case "IFLV":
 		case "FLPH":
 		case "FLPV":
-			curve = loadKeyFramesAs<boolean>(attrType, keys, parseBoolean);
+			curve = loadKeyFramesAs(ssAttr, keys, parseBoolean);
 			break;
 		case "USER":
 			if (! outputUserData) {
 				break;
 			}
-			curve = loadKeyFramesAs<any>(attrType, keys, (val: any): any => {
+			curve = loadKeyFramesAs(ssAttr, keys, val => {
 				const result: UserData = {};
 				result.num   = val.integer ? Number(val.integer[0])    : undefined;
 				result.point = val.point   ? str2numbers(val.point[0]) : undefined;
@@ -761,21 +840,26 @@ function loadKeyFrames(attrType: string, keys: any[], skinNames: string[], outpu
 			});
 			break;
 		case "EFCT":
-			curve = loadKeyFramesAs<vfx.EffectValue>(attrType, keys, (val: any): vfx.EffectValue => {
-				return {
-					emitterOp: val.independent[0] === "0" ? vfx.EmitterOperation.start : vfx.EmitterOperation.stop
-				};
-			});
+			curve = loadKeyFramesAs<vfx.EffectValue>(ssAttr, keys, val => ({
+				emitterOp: val.independent[0] === "0"
+					? vfx.EmitterOperation.start
+					: vfx.EmitterOperation.stop
+			}));
 			break;
 		default:
-			curve = loadKeyFramesAs<number>(attrType, keys, parseFloat);
+			curve = loadKeyFramesAs(ssAttr, keys, parseFloat);
 			break;
 	}
 
 	return curve;
 }
 
-function convertSSAnime(ssAnime: any, skinNames: string[], outputUserData: boolean): Animation {
+function convertSSAnime(
+	ssAnime: any,
+	skinNames: string[],
+	outputUserData: boolean,
+	ignoreUnknownAttributes: boolean
+): Animation {
 	const dstAnime = new Animation();
 	dstAnime.name = ssAnime.name[0];
 	dstAnime.fps = parseInt(ssAnime.settings[0].fps[0], 10);
@@ -794,9 +878,9 @@ function convertSSAnime(ssAnime: any, skinNames: string[], outputUserData: boole
 			for (let k = 0; k < attributes.length; k++) {
 				const attribute: any = attributes[k];
 				const keys: any[] = attribute.key;
-				const attrType: string = attribute.$.tag; // e.g. POSX, POSY, ...
+				const ssAttr = attribute.$.tag; // e.g. POSX, POSY, ...
 
-				const curve = loadKeyFrames(attrType, keys, skinNames, outputUserData);
+				const curve = loadKeyFrames(ssAttr, keys, skinNames, outputUserData, ignoreUnknownAttributes);
 				if (curve) {
 					mirrorCurve(curve);
 					curveTie.curves.push(curve); // stored
@@ -815,7 +899,12 @@ function convertSSAnime(ssAnime: any, skinNames: string[], outputUserData: boole
 	return dstAnime;
 }
 
-function loadAnimationsFromSSAnimeList(ssAnimeList: any[], skinNames: string[], outputUserData: boolean): Animation[] {
+function loadAnimationsFromSSAnimeList(
+	ssAnimeList: any[],
+	skinNames: string[],
+	outputUserData: boolean,
+	ignoreUnknownAttributes: boolean
+): Animation[] {
 	const animations: Animation[] = [];
 	for (let i = 0; i < ssAnimeList.length; i++) {
 		const ssAnime = ssAnimeList[i];
@@ -823,7 +912,7 @@ function loadAnimationsFromSSAnimeList(ssAnimeList: any[], skinNames: string[], 
 		if (ssAnime.isSetup && ssAnime.isSetup[0] === "1") {
 			continue;
 		}
-		const anime = convertSSAnime(ssAnime, skinNames, outputUserData);
+		const anime = convertSSAnime(ssAnime, skinNames, outputUserData, ignoreUnknownAttributes);
 		animations.push(anime);
 	}
 

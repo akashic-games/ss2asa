@@ -1,9 +1,11 @@
 # ss2asa
+
 SpriteStudio形式のファイルををakashic-animation形式にコンバートするコマンドラインツール。
 
 ## インストール
 
 `ss2asa` は `Node.js` で動作します。以下のコマンドでインストールできます。
+
 ```sh
 $ npm install -g @akashic-extension/ss2asa
 ```
@@ -11,16 +13,17 @@ $ npm install -g @akashic-extension/ss2asa
 npx が利用できる環境では `ss2asa` を直接呼び出すこともできます。
 
 ```sh
-$ npx -p @akashic-extension/ss2asa ss2asa project-file.sspj
+npx -p @akashic-extension/ss2asa ss2asa project-file.sspj
 ```
 
 Akashic Engineの詳細な利用方法については、 [公式ページ](https://akashic-games.github.io/) を参照してください。
 
 ## 使い方
+
 SpriteStudioのプロジェクトファイルを渡してください。関連ファイル(ssae,ssce)を含めすべてコンバートします。
 
 ```sh
-$ ss2asa project-file.sspj
+ss2asa project-file.sspj
 ```
 
 出力されるファイルは次のように対応します。
@@ -32,16 +35,21 @@ $ ss2asa project-file.sspj
 | ssce          | asask         | スキンファイル                         |
 
 ## オプション
+
 ### -h, --help
+
 ヘルプを表示します。
 
 ### -V, --version
+
 バージョンを表示します。
 
 ### -o, --out-dir
+
 出力先ディレクトリを指定します。存在しない時、ディレクトリを作成します。
 
 ### -p, --add-prefix
+
 出力ファイルのファイル名に次の接頭辞を加えます。
 
 | ファイル形式  | 接頭辞        |
@@ -50,13 +58,15 @@ $ ss2asa project-file.sspj
 | asabn         | bn_           |
 | asaan         | an_           |
 | asask         | sk_           |
-
+| asaef         | ef_           |
 
 ### -l, --long-name
+
 asaanファイル名(アニメーション名が用いられる)の前にssaeファイル名が加わります。２つの間は`_`で区切られます。
 
 例: `ss2asa -l jobs.sspj`
-```
+
+```text
 input:
 jobs.sspj
 ├── fighter.ssae
@@ -78,9 +88,11 @@ healer_walk.asaan
 この時各アニメーションデータの持つnameプロパティはロングネーム化されたファイル名と同じものになります。開発者はロングネームでアニメーションを指定してください。
 
 ### -b, --bundle-all
+
 すべてのアセットデータをまとめてasapjファイルに出力します。
 
 例(contentsプロパティ内の関係のないものは省略):
+
 ```json
 {
     "version": "3.0.0",
@@ -113,24 +125,31 @@ healer_walk.asaan
 ```
 
 ### -d, --delete-hidden
+
 SpriteStudio上で目玉アイコンを用いて非表示にしたパーツとそのアニメーションを削除します。
 
 ### -P --set-prefix
+
 `-p` オプションで出力ファイル名に加わる接頭辞を指定します。asapj,asabn,asask,asaan形式それぞれについて、この並びでカンマ区切りで指定します。デフォルトは`pj_,bn_,sk_,an_`です。
 
 ### -v, --verbose
+
 実行時の出力に詳細情報を含めます。
 
 ### -u, --user-data
+
 ユーザデータを出力します。
 
 ### -L, --label-as-user-data
+
 ラベルをユーザデータ形式で出力します。`-u`オプションが有効である必要があります。ユーザデータキーフレームはルートボーンのアニメーションとして追加されます。プロパティ名は`label`です。
 
 ### -c, --combination-info
+
 ボーン、スキン、アニメーションの有効な組み合わせの情報をasapjファイルのユーザデータとして出力します。`contents.userData.combinationInfo`プロパティからアクセスできます。
 
 例(contentsプロパティ内の関係のないものは省略):
+
 ```json
 {
     "version": "2.0.0",
@@ -155,9 +174,11 @@ SpriteStudio上で目玉アイコンを用いて非表示にしたパーツと�
 ```
 
 ### -r, --related-file-info
+
 asapjファイルと関連するファイルの一覧をasapjファイルのユーザデータとして出力します。`contents.userData.relatedFileInfo`プロパティからアクセスできます。
 
 例(contentsプロパティ内の関係のないものは省略):
+
 ```json
 {
     "version": "2.0.0",
@@ -189,9 +210,27 @@ asapjファイルと関連するファイルの一覧をasapjファイルのユ�
 ```
 
 ### -s, --layout-size
+
 アニメーションのレイアウト情報を出力します。`contents.userData.layoutSizes`プロパティからアクセスできます。
 
+### --porter
+
+ポーターを指定します。ポーターは各種データをシリアライズする前に加工・変換するものです。
+
+現在は `aop` (Array Oriented Porter) を指定できます。`aop` を指定すると、ファイルサイズが削減されます。
+
+aop を適用したファイルを読み込むことができる Akashic Animation は 4.2.0 以降になります。
+
+### --ignore-unknown-attribute
+
+Akashic Animation で利用できない属性を無視します。
+
+### --debug-verify-porter
+
+ポーターを検証するデバッグ機能です。通常使用することはありません。
+
 ## 使い方 (Node.js API)
+
 Node.js のモジュールとして呼び出すこともできます。
 
 ```javascript
@@ -219,6 +258,7 @@ ss2asa.convert({
 ```
 
 ## オプション
+
 * `projFileName: string` (required)
   * SpriteStudioのプロジェクトファイル
 * `outDir: string` (required)
@@ -247,7 +287,9 @@ ss2asa.convert({
   * アニメーションのレイアウト情報を出力するかどうか
 
 ## akashic-animationのサポートするアトリビュート
+
 以下のアトリビュートのアニメーションをサポートします。
+
 * 参照セル
 * X座標
 * Y座標
@@ -272,7 +314,9 @@ ss2asa.convert({
 * ユーザーデータ
 
 ## 補足
+
 ## キーフレームの外挿
+
 akashic-animationは再生するアニメーションの0フレーム目がキーフレームでない時、0フレーム目に初期値を与えます。初期値は属性により異なります（次の表参照）。
 
 | 属性                | 値         |
@@ -311,6 +355,7 @@ akashic-animationは再生するアニメーションの0フレーム目がキ�
 * 減速
 
 次の補間方法をサポートしていません。
+
 * イーズイン
 * イーズアウト
 * イーズインアウト
@@ -331,11 +376,14 @@ akashic-animationは再生するアニメーションの0フレーム目がキ�
 * イーズバックインアウト
 
 ## セルマップ参照イメージのアセット名に関する制限
+
 `ss2asa`はセルマップの参照するイメージのアセット名として、もとのイメージファイル名から拡張子を除いたものをasaskファイルに保存します。たとえば"stickman.png"のアセット名は"stickman"となります。
 もしgame.jsonで指定されるイメージアセット名がファイル名から拡張子を除いたものでない時、実行時エラーとなります(game.jsonの更新に`akashic-cli`を使用している限りそのような不整合は起こりません)。
 
 ## NULLパーツから出力される属性値に関する制限
+
 ss2asaはNULLパーツの持つ属性値の内、以下のもののみを出力します。
+
 * X, Y座標
 * Z回転
 * X, Yスケール
@@ -344,9 +392,11 @@ ss2asaはNULLパーツの持つ属性値の内、以下のもののみを出力�
 * ユーザデータ
 
 ## SpriteStudioの推奨環境設定
+
 akashic-animationはSpriteStudioの全機能をサポートしていません。サポートされない機能を誤って用いることを防ぐため、初期設定から編集可能な属性を選択することをお勧めします。
 
 ### 設定方法
+
 以下の手順はバージョン 5.5.1.5759 で確認しました。
 
 1. 環境設定 -> 一般設定 -> 新規プロジェクトのデフォルト設定 -> 一般 -> 互換性 を開き 再生対象のプラットフォームをカスタムにする
@@ -393,6 +443,7 @@ akashic-animationはSpriteStudioの全機能をサポートしていません。
 | 　 | インスタンス      |
 
 ## ライセンス
+
 本リポジトリは MIT License の元で公開されています。
 詳しくは [LICENSE](./LICENSE) をご覧ください。
 
