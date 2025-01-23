@@ -1,5 +1,6 @@
 import path = require("path");
-import {Skin, Cell, Bone, BoneSet, AnimeParams, ColliderInfo, AlphaBlendMode, vfx} from "@akashic-extension/akashic-animation";
+import type { ColliderInfo, AlphaBlendMode} from "@akashic-extension/akashic-animation";
+import {Skin, Cell, Bone, BoneSet, AnimeParams, vfx} from "@akashic-extension/akashic-animation";
 import Animation = AnimeParams.Animation;
 import CurveTie = AnimeParams.CurveTie;
 import Curve = AnimeParams.Curve;

@@ -1,18 +1,18 @@
 import path = require("path");
-import fs = require("fs-extra");
 // global.g が定義されていない状態で akashic-animation を import すると例外が発生するため lint エラーを抑止。
-/* eslint import/order: 0 */
 import g = require("@akashic/akashic-engine");
 (<any>global).g = g;
+import type {
+	ProjectV2,
+	ProjectV3} from "@akashic-extension/akashic-animation";
 import {
 	ContainerV2,
 	ContainerV3,
 	Content,
-	ProjectV2,
-	ProjectV3,
 	aop
 } from "@akashic-extension/akashic-animation";
-/* eslint import/order: 2 */
+
+import fs = require("fs-extra");
 import SS = require("./SpriteStudio");
 import U = require("./Utils");
 
