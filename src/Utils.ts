@@ -66,7 +66,7 @@ function _deepEqual(a: any, b: any, info: any[]): boolean {
 		// 	return false;
 		// }
 
-		let length, i, keys;
+		let length, i;
 		if (Array.isArray(a)) {
 			length = a.length;
 			if (length !== b.length) {
@@ -120,7 +120,7 @@ function _deepEqual(a: any, b: any, info: any[]): boolean {
 			);
 			return false;
 		}
-		keys = aKeys;
+		const keys = aKeys;
 		length = aKeys.length;
 
 		for (i = length; i-- !== 0;) {
